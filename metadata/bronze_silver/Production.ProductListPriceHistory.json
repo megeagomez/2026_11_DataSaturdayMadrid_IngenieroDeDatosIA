@@ -1,0 +1,16 @@
+{
+  "objeto": "Production.ProductListPriceHistory",
+  "activo": true,
+  "claves": [
+    "ProductID",
+    "StartDate"
+  ],
+  "destino": {
+    "esquema": "Production",
+    "tabla": "ProductListPriceHistory"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

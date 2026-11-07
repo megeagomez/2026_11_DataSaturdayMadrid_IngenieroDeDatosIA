@@ -1,0 +1,17 @@
+{
+  "objeto": "Person.BusinessEntityContact",
+  "activo": true,
+  "claves": [
+    "BusinessEntityID",
+    "PersonID",
+    "ContactTypeID"
+  ],
+  "destino": {
+    "esquema": "Person",
+    "tabla": "BusinessEntityContact"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

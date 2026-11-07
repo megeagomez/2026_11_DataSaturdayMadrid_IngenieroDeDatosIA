@@ -1,0 +1,126 @@
+{
+  "version": "1.1.0",
+  "diagrams": [
+    {
+      "ordinal": 0,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 50,
+            "y": 322.48026952747
+          },
+          "nodeIndex": "Cuotas",
+          "nodeLineageTag": "0fb83f46-0959-4c2d-b7f2-dbc8614efb4e",
+          "size": {
+            "height": 272,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 623.582890373061,
+            "y": 299.74739956011945
+          },
+          "nodeIndex": "Ventas",
+          "nodeLineageTag": "1e8e848c-04aa-470d-be16-6f6915db5365",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 337.02947765085833,
+            "y": 133.92786248917344
+          },
+          "nodeIndex": "Fecha",
+          "nodeLineageTag": "a9082770-9d40-4528-b05d-322ddcc57ae9",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 954.01660124139585,
+            "y": 98.873627740740744
+          },
+          "nodeIndex": "Producto",
+          "nodeLineageTag": "b0858ab4-30e7-41e6-86d1-72c180dd6d73",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 995.9093497253649,
+            "y": 452.59485038266234
+          },
+          "nodeIndex": "Promoción",
+          "nodeLineageTag": "5739fb71-fdd5-42d0-892b-47a608e323d9",
+          "size": {
+            "height": 296,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 708.87470266322123,
+            "y": 653.49232100535892
+          },
+          "nodeIndex": "Revendedor",
+          "nodeLineageTag": "66d6fd9c-9c01-4d6e-9ce2-e935a0745ce8",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 652.80578121874112,
+            "y": -50
+          },
+          "nodeIndex": "Territorio",
+          "nodeLineageTag": "aa2918a3-d635-4589-b619-aa0e71c6edd5",
+          "size": {
+            "height": 296,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 336.55292013024075,
+            "y": 500.46847342554565
+          },
+          "nodeIndex": "Vendedor",
+          "nodeLineageTag": "889bc0f7-96e5-4090-a19e-2b77d84c646a",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 0
+        }
+      ],
+      "name": "Todas las tablas",
+      "zoomValue": 100,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    }
+  ],
+  "selectedDiagram": "Todas las tablas",
+  "defaultDiagram": "Todas las tablas"
+}

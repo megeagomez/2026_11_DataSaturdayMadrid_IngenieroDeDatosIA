@@ -1,0 +1,16 @@
+{
+  "objeto": "Production.ProductCostHistory",
+  "activo": true,
+  "claves": [
+    "ProductID",
+    "StartDate"
+  ],
+  "destino": {
+    "esquema": "Production",
+    "tabla": "ProductCostHistory"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

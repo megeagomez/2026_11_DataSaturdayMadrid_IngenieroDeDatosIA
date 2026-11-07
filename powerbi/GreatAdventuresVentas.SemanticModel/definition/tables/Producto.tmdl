@@ -1,0 +1,89 @@
+/// Catálogo de productos con su subcategoría y categoría (dim_producto). Un registro por producto.
+table Producto
+
+	column IdProducto
+		dataType: int64
+		isHidden
+		isAvailableInMdx: false
+		summarizeBy: none
+		sourceColumn: IdProducto
+
+	/// Referencia comercial del producto (ProductNumber).
+	column 'Código de producto'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: CodigoProducto
+
+	/// Nombre del producto.
+	column Producto
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Producto
+
+	/// Subcategoría (por ejemplo, Mountain Bikes o Jerseys).
+	column 'Subcategoría'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Subcategoria
+
+	/// Categoría: Bikes, Components, Clothing o Accessories.
+	column 'Categoría'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Categoria
+
+	/// Color del producto. Vacío si no aplica.
+	column Color
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Color
+
+	/// Precio de tarifa actual (ListPrice). No es el precio cobrado: para eso, la medida Precio medio de venta.
+	column 'Precio de tarifa'
+		dataType: decimal
+		formatString: \$#,##0.00
+		summarizeBy: none
+		sourceColumn: PrecioTarifa
+
+	/// Coste estándar actual del producto. El margen usa el coste vigente en la fecha de cada pedido.
+	column 'Coste estándar'
+		dataType: decimal
+		formatString: \$#,##0.00
+		summarizeBy: none
+		sourceColumn: CosteEstandar
+
+	/// Fecha desde la que se vende el producto.
+	column 'Fecha inicio de venta'
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		summarizeBy: none
+		sourceColumn: FechaInicioVenta
+
+	/// Fecha en la que se dejó de vender. Vacía si sigue en catálogo.
+	column 'Fecha fin de venta'
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		summarizeBy: none
+		sourceColumn: FechaFinVenta
+
+	hierarchy 'Jerarquía de producto'
+
+		level 'Categoría'
+			column: 'Categoría'
+
+		level 'Subcategoría'
+			column: 'Subcategoría'
+
+		level Producto
+			column: Producto
+
+	partition Producto = m
+		mode: import
+		source =
+				let
+					Origen = Sql.Database(#"Servidor SQL gold", #"Base de datos gold"),
+					#"Tabla de gold" = Origen{[Schema = "dbo", Item = "dim_producto"]}[Data],
+					#"Columnas del modelo" = Table.SelectColumns(#"Tabla de gold", {"IdProducto", "CodigoProducto", "Producto", "Subcategoria", "Categoria", "Color", "PrecioTarifa", "CosteEstandar", "FechaInicioVenta", "FechaFinVenta"}),
+					#"Tipos aplicados" = Table.TransformColumnTypes(#"Columnas del modelo", {{"IdProducto", Int64.Type}, {"CodigoProducto", type text}, {"Producto", type text}, {"Subcategoria", type text}, {"Categoria", type text}, {"Color", type text}, {"PrecioTarifa", Currency.Type}, {"CosteEstandar", Currency.Type}, {"FechaInicioVenta", type date}, {"FechaFinVenta", type date}})
+				in
+					#"Tipos aplicados"

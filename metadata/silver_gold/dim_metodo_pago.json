@@ -1,0 +1,20 @@
+{
+  "entidad": "dim_metodo_pago",
+  "tipo": "dimension",
+  "descripcion": "Métodos de pago de los cobros a revendedores con el instrumento financiero que hay detrás. Un registro por método de pago.",
+  "destino": {
+    "esquema": "dbo",
+    "tabla": "dim_metodo_pago"
+  },
+  "clave": [
+    "MetodoPago"
+  ],
+  "consulta": "dim_metodo_pago.sql",
+  "borrar_ausentes": true,
+  "depende_de": [],
+  "activo": true,
+  "columnas": {
+    "MetodoPago": "Método de pago tal y como llega en el cobro. Es la clave de la dimensión.",
+    "Instrumento": "Instrumento financiero: transferencia bancaria, efecto comercial, confirming o adeudo directo."
+  }
+}

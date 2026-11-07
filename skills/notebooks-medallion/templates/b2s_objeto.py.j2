@@ -1,0 +1,144 @@
+# %% [markdown]
+# # Bronze → Silver · {{ o.objeto }}
+# Generado con la skill `notebooks-medallion` desde `metadata/bronze_silver/{{ o.objeto }}.json`.
+# **No lo edites a mano**: cambia la plantilla o la metadata y vuelve a generar.
+#
+# - Lee los parquet que ha dejado pyuploader en `{{ o.carpeta_origen }}/{{ o.objeto }}/year=YY/month=MM/day=DD/`, usando `.metadata/{{ o.objeto }}_filehistory.json`.
+# - Incremental por marca de agua (la `fechahora` del último fichero procesado, guardada en `control.dbo.log_ejecucion`).
+# - Deduplica con `ROW_NUMBER()` por la clave `{{ o.claves | join(", ") }}`, ordenando por `LoadedBy` descendente: se queda la versión más reciente.
+# - Aplica los borrados (`_sql_op` en {{ o.operaciones_borrado }}). Si llega una carga `full`, borra en Silver lo que ya no está en origen.
+
+# %% [parameters]
+proyecto = "{{ c.proyecto }}"
+ws_datos = "{{ c.workspace_datos }}"
+ws_control = "{{ c.workspace_control }}"
+lh_bronze = "{{ c.lakehouse_bronze }}"
+lh_silver = "{{ c.lakehouse_silver }}"
+lh_control = "{{ c.lakehouse_control }}"
+carpeta_origen = "{{ o.carpeta_origen }}"
+objeto = "{{ o.objeto }}"
+claves = "{{ o.claves | join(',') }}"
+esquema_destino = "{{ o.destino.esquema }}"
+tabla_destino = "{{ o.destino.tabla }}"
+operaciones_borrado = "{{ o.operaciones_borrado | join(',') }}"
+modo = "auto"              # auto: incremental desde la marca de agua | reconstruir: desde la última carga full
+evolucion_esquema = True   # añadir columnas nuevas del origen a Silver
+simular = False            # True: lee, cuenta y registra en el log, pero no escribe en Silver
+id_orquestacion = ""       # lo rellena el orquestador
+
+{% include "_comun.py.j2" %}
+
+# %%
+CAPA = "bronze_silver"
+RUTA_BRONZE = f"{ruta_lakehouse(ws_datos, lh_bronze)}/{carpeta_origen}"
+RUTA_FILES = f"{ruta_lakehouse(ws_datos, lh_bronze)}/Files"
+RUTA_SILVER = f"{ruta_lakehouse(ws_datos, lh_silver)}/Tables/{esquema_destino}/{tabla_destino}"
+TECNICAS = {"LoadedBy", "_sql_op"}
+
+def leer_json(ruta):
+    return json.loads(notebookutils.fs.head(ruta, 50_000_000))
+
+def marca_de_agua():
+    ruta = f"{RUTA_CONTROL}/log_ejecucion"
+    if not es_tabla_delta(ruta):
+        return None
+    return (spark.read.format("delta").load(ruta)
+            .filter((F.col("capa") == CAPA) & (F.col("objeto") == objeto) & (~F.col("simulado"))
+                    & F.col("estado").isin("OK", "SIN_CAMBIOS"))
+            .agg(F.max("marca_hasta")).first()[0])
+
+def lote(nombre_fichero):
+    # <Tabla>_<guid de la ejecución de pyuploader>_<nnnnn>.parquet
+    return nombre_fichero[: -len(".parquet")].rsplit("_", 2)[-2]
+
+def ficheros_a_procesar(historial, marca, reconstruir):
+    """Devuelve (ficheros, tipo_carga). Una carga full puede ocupar varios ficheros del mismo lote."""
+    completos = [i for i, h in enumerate(historial) if h.get("mode") == "full"]
+    if reconstruir:
+        if not completos:
+            return historial, "reconstruccion"
+        lt = lote(historial[completos[-1]]["nombredelficheroparquet"])
+        desde = min(i for i, h in enumerate(historial) if lote(h["nombredelficheroparquet"]) == lt)
+        return historial[desde:], "reconstruccion"
+    pendientes = [i for i, h in enumerate(historial) if marca is None or h["fechahora"] > marca]
+    if not pendientes:
+        return [], "sin_cambios"
+    full_pend = [i for i in pendientes if historial[i].get("mode") == "full"]
+    if full_pend:
+        lt = lote(historial[full_pend[-1]]["nombredelficheroparquet"])
+        desde = min(i for i, h in enumerate(historial) if lote(h["nombredelficheroparquet"]) == lt)
+        return historial[desde:], "full"
+    return [historial[i] for i in pendientes], "incremental"
+
+# %%
+m = dict(ficheros_leidos=0, filas_leidas=0, filas_unicas=0, filas_duplicadas=0, filas_borrado_origen=0,
+         filas_insertadas=0, filas_actualizadas=0, filas_borradas=0)
+estado, error, tipo_carga, marca, marca_hasta = "OK", None, None, None, None
+try:
+    meta = leer_json(f"{RUTA_BRONZE}/.metadata/{objeto}.json")
+    clave_pyuploader = [c.strip() for c in meta.get("primarykey", "").split(",") if c.strip()]
+    pk = [c.strip() for c in claves.split(",") if c.strip()] or clave_pyuploader
+    if not pk:
+        raise ValueError(f"{objeto}: sin clave primaria en la metadata ni en .metadata de pyuploader")
+    if clave_pyuploader and [c.lower() for c in pk] != [c.lower() for c in clave_pyuploader]:
+        raise ValueError(f"{objeto}: la clave de la metadata {pk} no coincide con la de pyuploader {clave_pyuploader}. Revisa metadata/bronze_silver.")
+
+    historial = sorted(leer_json(f"{RUTA_BRONZE}/.metadata/{objeto}_filehistory.json"), key=lambda h: h["fechahora"])
+    reconstruir = modo == "reconstruir" or not es_tabla_delta(RUTA_SILVER)
+    marca = None if reconstruir else marca_de_agua()
+    ficheros, tipo_carga = ficheros_a_procesar(historial, marca, reconstruir)
+    marca_hasta = ficheros[-1]["fechahora"] if ficheros else marca
+
+    if not ficheros:
+        estado = "SIN_CAMBIOS"
+    else:
+        rutas = [f"{RUTA_FILES}/{h['ruta'].replace(chr(92), '/')}/{h['nombredelficheroparquet']}" for h in ficheros]
+        fechas = spark.createDataFrame([(h["nombredelficheroparquet"], h["fechahora"]) for h in ficheros],
+                                       "_fichero string, _fechahora_fichero string")
+        df = (spark.read.option("mergeSchema", "true").parquet(*rutas)
+                .withColumn("_fichero", F.col("_metadata.file_name"))
+                .withColumn("_orden", F.monotonically_increasing_id())
+                .join(F.broadcast(fechas), "_fichero", "left")).cache()
+        faltan = [c for c in pk if c not in df.columns]
+        if faltan:
+            raise ValueError(f"{objeto}: columnas de clave que no están en el parquet: {faltan}")
+        m["ficheros_leidos"] = len(rutas)
+        m["filas_leidas"] = df.count()
+
+        if "LoadedBy" not in df.columns:
+            raise ValueError(f"{objeto}: falta la columna LoadedBy de pyuploader; no se puede deduplicar")
+        # Deduplicación: ROW_NUMBER() por la clave, la versión más reciente según LoadedBy.
+        # Desempates (misma extracción): fichero más reciente del lote y orden dentro del fichero.
+        orden = [F.to_timestamp("LoadedBy").desc(), F.col("_fechahora_fichero").desc(), F.col("_orden").desc()]
+        ultimas = (df.withColumn("_n", F.row_number().over(Window.partitionBy(*pk).orderBy(*orden)))
+                     .filter("_n = 1").drop("_n"))
+        ops = [o.strip() for o in operaciones_borrado.split(",") if o.strip()]
+        borrado = F.col("_sql_op").isin(ops) if "_sql_op" in df.columns else F.lit(False)
+        ultimas = ultimas.withColumn("_borrado", borrado.cast("boolean"))
+        m["filas_unicas"] = ultimas.count()
+        m["filas_duplicadas"] = m["filas_leidas"] - m["filas_unicas"]
+        m["filas_borrado_origen"] = ultimas.filter("_borrado").count()
+
+        salida = (con_hash(ultimas, TECNICAS)
+                  .withColumn("_cargado_bronze", F.to_timestamp("LoadedBy"))
+                  .withColumn("_fichero_origen", F.col("_fichero"))
+                  .withColumn("_id_ejecucion", F.lit(ID_EJECUCION))
+                  .withColumn("_procesado", F.current_timestamp())
+                  .drop(*TECNICAS, "_fichero", "_orden", "_fechahora_fichero"))
+        if not simular:
+            ins, act, bor = fusionar(RUTA_SILVER, salida, pk, borrar_ausentes=tipo_carga in ("full", "reconstruccion"),
+                                     col_borrado="_borrado")
+            m.update(filas_insertadas=ins, filas_actualizadas=act, filas_borradas=bor)
+        df.unpersist()
+except Exception as e:
+    estado, error = "ERROR", f"{type(e).__name__}: {e}"[:4000]
+finally:
+    registrar_ejecucion(id_orquestacion=id_orquestacion or None, capa=CAPA, objeto=objeto,
+                        destino=f"{lh_silver}.{esquema_destino}.{tabla_destino}", tipo_carga=tipo_carga,
+                        estado=estado, simulado=bool(simular), marca_desde=marca, marca_hasta=marca_hasta, error=error,
+                        parametros=json.dumps(dict(modo=modo, claves=claves, simular=simular)), **m)
+if error:
+    raise RuntimeError(error)
+
+# %%
+notebookutils.notebook.exit(json.dumps(dict(estado=estado, objeto=objeto, tipo_carga=tipo_carga, id_ejecucion=ID_EJECUCION, **m)))

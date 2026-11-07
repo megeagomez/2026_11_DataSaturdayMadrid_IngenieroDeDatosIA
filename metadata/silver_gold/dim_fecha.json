@@ -1,0 +1,16 @@
+{
+  "entidad": "dim_fecha",
+  "tipo": "dimension",
+  "descripcion": "Calendario diario desde el 1 de enero del primer año con pedidos hasta el 31 de diciembre del año siguiente al último. Un registro por día.",
+  "destino": {
+    "esquema": "dbo",
+    "tabla": "dim_fecha"
+  },
+  "clave": [
+    "Fecha"
+  ],
+  "consulta": "dim_fecha.sql",
+  "borrar_ausentes": true,
+  "depende_de": [],
+  "activo": true
+}

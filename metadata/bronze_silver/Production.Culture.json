@@ -1,0 +1,15 @@
+{
+  "objeto": "Production.Culture",
+  "activo": true,
+  "claves": [
+    "CultureID"
+  ],
+  "destino": {
+    "esquema": "Production",
+    "tabla": "Culture"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

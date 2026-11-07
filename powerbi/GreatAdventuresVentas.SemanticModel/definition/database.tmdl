@@ -1,0 +1,4 @@
+database GreatAdventuresVentas
+	compatibilityLevel: 1702
+	compatibilityMode: powerBI
+	language: 3082

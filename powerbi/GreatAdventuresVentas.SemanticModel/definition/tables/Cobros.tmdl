@@ -1,0 +1,167 @@
+/// Cobros de los pedidos de revendedor (fact_cobros): uno por pedido, con vencimiento, fecha de pago (vacía si está pendiente), importe con portes e impuestos y método de pago. No se relaciona con Fecha: la deuda se calcula a la fecha de corte.
+table Cobros
+
+	/// Importe de los cobros vencidos (FechaVencimiento <= fecha de corte) y sin pagar a la fecha de corte (FechaPago vacía o posterior). Fecha de corte = último día del contexto de fecha. El día del pago ya no se debe.
+	measure 'Deuda vencida pendiente' = ```
+			VAR _corte = MAX('Fecha'[Fecha])
+			RETURN
+				CALCULATE(
+					SUM('Cobros'[Importe]),
+					'Cobros'[FechaVencimiento] <= _corte,
+					OR(ISBLANK('Cobros'[FechaPago]), 'Cobros'[FechaPago] > _corte)
+				)
+			```
+		formatString: \$#,##0
+		displayFolder: Cobros y deuda
+
+	/// Número de facturas vencidas y sin pagar a la fecha de corte. Mismas reglas que Deuda vencida pendiente.
+	measure 'Facturas vencidas pendientes' = ```
+			VAR _corte = MAX('Fecha'[Fecha])
+			RETURN
+				CALCULATE(
+					COUNTROWS('Cobros'),
+					'Cobros'[FechaVencimiento] <= _corte,
+					OR(ISBLANK('Cobros'[FechaPago]), 'Cobros'[FechaPago] > _corte)
+				)
+			```
+		formatString: #,##0
+		displayFolder: Cobros y deuda
+
+	/// Importe de los cobros cuya fecha de pago cae dentro del periodo seleccionado (flujo: lo cobrado en el mes, trimestre o año).
+	measure 'Importe cobrado' = ```
+			VAR _inicio = MIN('Fecha'[Fecha])
+			VAR _fin = MAX('Fecha'[Fecha])
+			RETURN
+				CALCULATE(
+					SUM('Cobros'[Importe]),
+					'Cobros'[FechaPago] >= _inicio,
+					'Cobros'[FechaPago] <= _fin
+				)
+			```
+		formatString: \$#,##0
+		displayFolder: Cobros y deuda
+
+	/// Deuda vencida más la que aún no ha vencido, sin pagar a la fecha de corte. Como no hay fecha de factura, se consideran emitidas las facturas que vencen como mucho 90 días después del corte (el plazo máximo de pago). Es una aproximación.
+	measure 'Deuda pendiente total' = ```
+			VAR _corte = MAX('Fecha'[Fecha])
+			RETURN
+				CALCULATE(
+					SUM('Cobros'[Importe]),
+					'Cobros'[FechaVencimiento] <= _corte + 90,
+					OR(ISBLANK('Cobros'[FechaPago]), 'Cobros'[FechaPago] > _corte)
+				)
+			```
+		formatString: \$#,##0
+		displayFolder: Cobros y deuda
+
+	/// Deuda vencida pendiente que lleva de 0 a 30 días vencida a la fecha de corte (días = corte - vencimiento; el día del vencimiento es el día 0).
+	measure 'Deuda vencida 0-30 días' = ```
+			VAR _corte = MAX('Fecha'[Fecha])
+			RETURN
+				CALCULATE(
+					SUM('Cobros'[Importe]),
+					'Cobros'[FechaVencimiento] <= _corte - 0,
+					'Cobros'[FechaVencimiento] >= _corte - 30,
+					OR(ISBLANK('Cobros'[FechaPago]), 'Cobros'[FechaPago] > _corte)
+				)
+			```
+		formatString: \$#,##0
+		displayFolder: Cobros y deuda\Antigüedad
+
+	/// Deuda vencida pendiente que lleva de 31 a 60 días vencida a la fecha de corte.
+	measure 'Deuda vencida 31-60 días' = ```
+			VAR _corte = MAX('Fecha'[Fecha])
+			RETURN
+				CALCULATE(
+					SUM('Cobros'[Importe]),
+					'Cobros'[FechaVencimiento] <= _corte - 31,
+					'Cobros'[FechaVencimiento] >= _corte - 60,
+					OR(ISBLANK('Cobros'[FechaPago]), 'Cobros'[FechaPago] > _corte)
+				)
+			```
+		formatString: \$#,##0
+		displayFolder: Cobros y deuda\Antigüedad
+
+	/// Deuda vencida pendiente que lleva de 61 a 90 días vencida a la fecha de corte.
+	measure 'Deuda vencida 61-90 días' = ```
+			VAR _corte = MAX('Fecha'[Fecha])
+			RETURN
+				CALCULATE(
+					SUM('Cobros'[Importe]),
+					'Cobros'[FechaVencimiento] <= _corte - 61,
+					'Cobros'[FechaVencimiento] >= _corte - 90,
+					OR(ISBLANK('Cobros'[FechaPago]), 'Cobros'[FechaPago] > _corte)
+				)
+			```
+		formatString: \$#,##0
+		displayFolder: Cobros y deuda\Antigüedad
+
+	/// Deuda vencida pendiente que lleva más de 90 días vencida a la fecha de corte.
+	measure 'Deuda vencida más de 90 días' = ```
+			VAR _corte = MAX('Fecha'[Fecha])
+			RETURN
+				CALCULATE(
+					SUM('Cobros'[Importe]),
+					'Cobros'[FechaVencimiento] <= _corte - 91,
+					OR(ISBLANK('Cobros'[FechaPago]), 'Cobros'[FechaPago] > _corte)
+				)
+			```
+		formatString: \$#,##0
+		displayFolder: Cobros y deuda\Antigüedad
+
+	/// Identificador del cobro (C-<pedido>; TEST-001 es la factura de prueba).
+	column IdCobro
+		dataType: string
+		isHidden
+		isAvailableInMdx: false
+		summarizeBy: none
+		sourceColumn: IdCobro
+
+	/// Pedido de venta cobrado.
+	column IdPedido
+		dataType: int64
+		isHidden
+		isAvailableInMdx: false
+		summarizeBy: none
+		sourceColumn: SalesOrderID
+
+	column FechaVencimiento
+		dataType: dateTime
+		isHidden
+		isAvailableInMdx: false
+		formatString: dd/mm/yyyy
+		summarizeBy: none
+		sourceColumn: FechaVencimiento
+
+	column FechaPago
+		dataType: dateTime
+		isHidden
+		isAvailableInMdx: false
+		formatString: dd/mm/yyyy
+		summarizeBy: none
+		sourceColumn: FechaPago
+
+	column Importe
+		dataType: decimal
+		isHidden
+		isAvailableInMdx: false
+		summarizeBy: sum
+		sourceColumn: Importe
+
+	column MetodoPago
+		dataType: string
+		isHidden
+		isAvailableInMdx: false
+		summarizeBy: none
+		sourceColumn: MetodoPago
+
+	partition Cobros = m
+		mode: import
+		source =
+				let
+					Origen = Sql.Database(#"Servidor SQL gold", #"Base de datos gold"),
+					#"Tabla de gold" = Origen{[Schema = "dbo", Item = "fact_cobros"]}[Data],
+					#"Columnas del modelo" = Table.SelectColumns(#"Tabla de gold", {"IdCobro", "SalesOrderID", "FechaVencimiento", "FechaPago", "Importe", "MetodoPago"}),
+					#"Tipos aplicados" = Table.TransformColumnTypes(#"Columnas del modelo", {{"IdCobro", type text}, {"SalesOrderID", Int64.Type}, {"FechaVencimiento", type date}, {"FechaPago", type date}, {"Importe", Currency.Type}, {"MetodoPago", type text}})
+				in
+					#"Tipos aplicados"

@@ -1,0 +1,8 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/semanticModel/copilot/examplePrompts/1.0.0/schema.json",
+  "prompts": [
+    "¿Qué 10 revendedores han comprado más este año y cuál es su margen?",
+    "% de cumplimiento de cuota por comercial en el último trimestre",
+    "¿Cómo evoluciona el % de descuento por categoría frente al año anterior?"
+  ]
+}

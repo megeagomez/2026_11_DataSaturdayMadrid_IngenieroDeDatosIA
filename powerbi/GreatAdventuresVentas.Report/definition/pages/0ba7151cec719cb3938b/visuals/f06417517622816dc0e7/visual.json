@@ -1,0 +1,253 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
+  "name": "f06417517622816dc0e7",
+  "position": {
+    "x": 24,
+    "y": 475,
+    "z": 80000,
+    "height": 229,
+    "width": 800,
+    "tabOrder": 80000
+  },
+  "visual": {
+    "visualType": "columnChart",
+    "query": {
+      "queryState": {
+        "Category": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Fecha"
+                    }
+                  },
+                  "Property": "Fin de mes"
+                }
+              },
+              "queryRef": "Fecha.Fin de mes",
+              "nativeQueryRef": "Fin de mes"
+            }
+          ]
+        },
+        "Y": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Cobros"
+                    }
+                  },
+                  "Property": "Deuda vencida 0-30 días"
+                }
+              },
+              "queryRef": "Cobros.Deuda vencida 0-30 días",
+              "nativeQueryRef": "Deuda vencida 0-30 días"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Cobros"
+                    }
+                  },
+                  "Property": "Deuda vencida 31-60 días"
+                }
+              },
+              "queryRef": "Cobros.Deuda vencida 31-60 días",
+              "nativeQueryRef": "Deuda vencida 31-60 días"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Cobros"
+                    }
+                  },
+                  "Property": "Deuda vencida 61-90 días"
+                }
+              },
+              "queryRef": "Cobros.Deuda vencida 61-90 días",
+              "nativeQueryRef": "Deuda vencida 61-90 días"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Cobros"
+                    }
+                  },
+                  "Property": "Deuda vencida más de 90 días"
+                }
+              },
+              "queryRef": "Cobros.Deuda vencida más de 90 días",
+              "nativeQueryRef": "Deuda vencida más de 90 días"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "Fecha"
+                  }
+                },
+                "Property": "Fin de mes"
+              }
+            },
+            "direction": "Ascending"
+          }
+        ],
+        "isDefaultSort": false
+      }
+    },
+    "objects": {
+      "dataPoint": [
+        {
+          "properties": {
+            "fill": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#7FD3E3'"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Cobros.Deuda vencida 0-30 días"
+          }
+        },
+        {
+          "properties": {
+            "fill": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#00A6C7'"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Cobros.Deuda vencida 31-60 días"
+          }
+        },
+        {
+          "properties": {
+            "fill": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#1769AA'"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Cobros.Deuda vencida 61-90 días"
+          }
+        },
+        {
+          "properties": {
+            "fill": {
+              "solid": {
+                "color": {
+                  "expr": {
+                    "Literal": {
+                      "Value": "'#D95C5C'"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "selector": {
+            "metadata": "Cobros.Deuda vencida más de 90 días"
+          }
+        }
+      ],
+      "legend": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "position": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Top'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "visualContainerObjects": {
+      "title": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Antigüedad de la deuda vencida a fin de mes'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "subTitle": [
+        {
+          "properties": {
+            "show": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "text": {
+              "expr": {
+                "Literal": {
+                  "Value": "'Días vencida al cierre de cada mes'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

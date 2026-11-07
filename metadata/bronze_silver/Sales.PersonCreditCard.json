@@ -1,0 +1,16 @@
+{
+  "objeto": "Sales.PersonCreditCard",
+  "activo": true,
+  "claves": [
+    "BusinessEntityID",
+    "CreditCardID"
+  ],
+  "destino": {
+    "esquema": "Sales",
+    "tabla": "PersonCreditCard"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

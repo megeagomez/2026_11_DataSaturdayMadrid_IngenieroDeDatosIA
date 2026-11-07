@@ -1,0 +1,11 @@
+{
+  "entidad": "fact_compras",
+  "tipo": "hecho",
+  "descripcion": "Líneas de pedido de compra a proveedor. Un registro por línea de pedido.",
+  "destino": { "esquema": "dbo", "tabla": "fact_compras" },
+  "clave": ["IdPedidoCompra", "IdLineaPedidoCompra"],
+  "consulta": "fact_compras.sql",
+  "borrar_ausentes": true,
+  "depende_de": ["dim_producto", "dim_proveedor"],
+  "activo": true
+}

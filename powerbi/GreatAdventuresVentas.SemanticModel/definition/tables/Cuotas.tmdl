@@ -1,0 +1,80 @@
+/// Cuota de ventas trimestral de cada comercial (fact_cuota_vendedor). La fecha es el primer día del trimestre de la cuota.
+table Cuotas
+
+	/// Cuota de ventas asignada a los comerciales. Es trimestral: analízala por trimestre o por año, no por mes ni por día.
+	measure Cuota = SUM('Cuotas'[Importe de cuota])
+		formatString: \$#,##0
+		displayFolder: Cuotas
+
+	/// Ventas netas de los comerciales sobre su cuota (quota attainment). 100 % = cuota cumplida.
+	measure '% Cumplimiento de cuota' = ```
+			VAR _cuota = [Cuota]
+			VAR _ventas = CALCULATE([Ventas netas], KEEPFILTERS(NOT ISBLANK('Ventas'[IdVendedor])))
+			RETURN
+				DIVIDE(_ventas, _cuota)
+			```
+		formatString: 0.0%
+		displayFolder: Cuotas
+
+	/// Ventas netas menos cuota. Positivo: por encima de la cuota.
+	measure 'Desviación sobre cuota' = ```
+			VAR _cuota = [Cuota]
+			RETURN
+				IF(NOT ISBLANK(_cuota), [Ventas netas] - _cuota)
+			```
+		formatString: \$#,##0
+		displayFolder: Cuotas
+
+	/// Número de comerciales cuyas ventas netas del periodo alcanzan o superan su cuota.
+	measure 'Comerciales que cumplen cuota' = ```
+			VAR _cumplen =
+				COUNTROWS(
+					FILTER(
+						VALUES('Vendedor'[Vendedor]),
+						VAR _cuota = [Cuota]
+						RETURN NOT ISBLANK(_cuota) && [Ventas netas] >= _cuota
+					)
+				)
+			RETURN
+				IF(NOT ISBLANK([Cuota]), COALESCE(_cumplen, 0))
+			```
+		formatString: #,##0
+		displayFolder: Cuotas
+
+	/// Ventas netas de cada comercial por su porcentaje de comisión actual. Es una estimación: no usa el histórico de comisiones.
+	measure 'Comisión estimada' = SUMX(VALUES('Vendedor'[IdVendedor]), [Ventas netas] * CALCULATE(MAX('Vendedor'[% Comisión])))
+		formatString: \$#,##0
+		displayFolder: Cuotas
+
+	column IdVendedor
+		dataType: int64
+		isHidden
+		isAvailableInMdx: false
+		summarizeBy: none
+		sourceColumn: IdVendedor
+
+	column FechaCuota
+		dataType: dateTime
+		isHidden
+		isAvailableInMdx: false
+		formatString: dd/mm/yyyy
+		summarizeBy: none
+		sourceColumn: FechaCuota
+
+	column 'Importe de cuota'
+		dataType: decimal
+		isHidden
+		isAvailableInMdx: false
+		summarizeBy: sum
+		sourceColumn: Cuota
+
+	partition Cuotas = m
+		mode: import
+		source =
+				let
+					Origen = Sql.Database(#"Servidor SQL gold", #"Base de datos gold"),
+					#"Tabla de gold" = Origen{[Schema = "dbo", Item = "fact_cuota_vendedor"]}[Data],
+					#"Columnas del modelo" = Table.SelectColumns(#"Tabla de gold", {"IdVendedor", "FechaCuota", "Cuota"}),
+					#"Tipos aplicados" = Table.TransformColumnTypes(#"Columnas del modelo", {{"IdVendedor", Int64.Type}, {"FechaCuota", type date}, {"Cuota", Currency.Type}})
+				in
+					#"Tipos aplicados"

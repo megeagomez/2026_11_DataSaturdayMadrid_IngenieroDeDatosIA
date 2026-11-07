@@ -1,0 +1,15 @@
+{
+  "objeto": "Sales.SalesTaxRate",
+  "activo": true,
+  "claves": [
+    "SalesTaxRateID"
+  ],
+  "destino": {
+    "esquema": "Sales",
+    "tabla": "SalesTaxRate"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

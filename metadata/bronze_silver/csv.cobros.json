@@ -1,0 +1,16 @@
+{
+  "objeto": "csv.cobros",
+  "activo": true,
+  "claves": [
+    "IdCobro"
+  ],
+  "destino": {
+    "esquema": "csv",
+    "tabla": "cobros"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "carpeta_origen": "Files/Source/cobros",
+  "notas": "Cobros sintéticos de los pedidos de revendedor (data/generar_cobros.py), subidos con pyuploader a Files/Source/cobros. Un cobro por pedido."
+}

@@ -1,0 +1,16 @@
+{
+  "objeto": "HumanResources.EmployeePayHistory",
+  "activo": true,
+  "claves": [
+    "BusinessEntityID",
+    "RateChangeDate"
+  ],
+  "destino": {
+    "esquema": "HumanResources",
+    "tabla": "EmployeePayHistory"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

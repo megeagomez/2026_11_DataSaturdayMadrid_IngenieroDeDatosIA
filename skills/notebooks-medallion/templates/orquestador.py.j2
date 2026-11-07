@@ -1,0 +1,92 @@
+# %% [markdown]
+# # Orquestador {{ capa_titulo }}
+# Generado con la skill `notebooks-medallion` desde `metadata/`. **No lo edites a mano.**
+#
+# Ejecuta {{ actividades | length }} notebooks con `notebookutils.notebook.runMultiple` como un DAG, con el máximo paralelismo que permiten las dependencias.
+# Al final escribe una fila en `control.dbo.log_orquestacion`. Cada notebook escribe la suya en `control.dbo.log_ejecucion` con el mismo `id_orquestacion`.
+{% if niveles %}#
+# Niveles del DAG (lo que puede ir en paralelo):
+{% for n in niveles %}# {{ loop.index }}. {{ n | join(", ") }}
+{% endfor %}{% endif %}
+
+# %% [parameters]
+proyecto = "{{ c.proyecto }}"
+ws_control = "{{ c.workspace_control }}"
+lh_control = "{{ c.lakehouse_control }}"
+concurrencia = 0           # 0 = máximo: tantas como actividades (la sesión de Spark puede limitarlo)
+solo = ""                  # lista separada por comas para ejecutar solo esas actividades (y sus dependencias)
+simular = False            # se pasa a cada notebook
+{% if capa == "bronze_silver" %}modo = "auto"              # auto | reconstruir, se pasa a cada notebook
+{% endif %}timeout_celda_s = {{ c.notebooks.timeout_celda_s }}
+timeout_total_s = {{ c.notebooks.timeout_orquestador_s }}
+reintentos = {{ c.notebooks.reintentos }}
+
+{% include "_comun.py.j2" %}
+
+# %%
+CAPA = "{{ capa }}"
+ID_ORQUESTACION = ID_EJECUCION
+ACTIVIDADES = {{ actividades | tojson(indent=4) }}
+
+def con_dependencias(nombres, actividades):
+    por_nombre = {a["name"]: a for a in actividades}
+    pendientes, elegidas = list(nombres), set()
+    while pendientes:
+        n = pendientes.pop()
+        if n not in por_nombre:
+            raise ValueError(f"Actividad desconocida: {n}")
+        if n not in elegidas:
+            elegidas.add(n)
+            pendientes.extend(por_nombre[n]["dependencies"])
+    return [a for a in actividades if a["name"] in elegidas]
+
+elegidas = con_dependencias([s.strip() for s in solo.split(",") if s.strip()], ACTIVIDADES) if solo.strip() else ACTIVIDADES
+args = dict(id_orquestacion=ID_ORQUESTACION, simular=simular{% if capa == "bronze_silver" %}, modo=modo{% endif %})
+dag = {
+    "activities": [dict(a, args=dict(args), timeoutPerCellInSeconds=timeout_celda_s, retry=reintentos,
+                        retryIntervalInSeconds=30) for a in elegidas],
+    "timeoutInSeconds": timeout_total_s,
+    "concurrency": concurrencia or len(elegidas),
+}
+
+# %%
+estado, error, resultado = "OK", None, {}
+try:
+    resultado = notebookutils.notebook.runMultiple(dag, {"displayDAGViaGraphviz": False})
+except Exception as e:
+    estado, error = "ERROR", f"{type(e).__name__}: {e}"[:4000]
+
+# Resumen desde el log de cada notebook (fuente única de verdad).
+ok = sin_cambios = errores = 0
+ruta_log = f"{RUTA_CONTROL}/log_ejecucion"
+if es_tabla_delta(ruta_log):
+    # Con reintentos puede haber varias filas por objeto: cuenta solo la última.
+    ultima = Window.partitionBy("objeto").orderBy(F.col("fin").desc())
+    filas = (spark.read.format("delta").load(ruta_log).filter(F.col("id_orquestacion") == ID_ORQUESTACION)
+             .withColumn("_n", F.row_number().over(ultima)).filter("_n = 1")
+             .groupBy("estado").count().collect())
+    cuenta = {r["estado"]: r["count"] for r in filas}
+    ok, sin_cambios, errores = cuenta.get("OK", 0), cuenta.get("SIN_CAMBIOS", 0), cuenta.get("ERROR", 0)
+sin_log = len(elegidas) - ok - sin_cambios - errores   # notebooks que no llegaron a escribir (timeout, cancelados)
+if errores or sin_log:
+    estado = "ERROR"
+
+fin = dt.datetime.now(dt.timezone.utc).replace(tzinfo=None)
+esquema = T.StructType([T.StructField(n, t) for n, t in [
+    ("id_orquestacion", T.StringType()), ("proyecto", T.StringType()), ("capa", T.StringType()),
+    ("estado", T.StringType()), ("inicio", T.TimestampType()), ("fin", T.TimestampType()),
+    ("duracion_s", T.DoubleType()), ("actividades", T.LongType()), ("ok", T.LongType()),
+    ("sin_cambios", T.LongType()), ("errores", T.LongType()), ("sin_log", T.LongType()),
+    ("concurrencia", T.LongType()), ("parametros", T.StringType()), ("error", T.StringType()),
+    ("notebook", T.StringType()), ("usuario", T.StringType()), ("spark_app_id", T.StringType())]])
+fila = (ID_ORQUESTACION, proyecto, CAPA, estado, INICIO, fin, (fin - INICIO).total_seconds(), len(elegidas),
+        ok, sin_cambios, errores, sin_log, dag["concurrency"], json.dumps(dict(args, solo=solo)), error,
+        contexto("currentNotebookName"), contexto("userName"), spark.sparkContext.applicationId)
+(spark.createDataFrame([fila], esquema).write.format("delta").mode("append").option("mergeSchema", "true")
+     .save(f"{RUTA_CONTROL}/log_orquestacion"))
+print(f"{CAPA}: {estado} · {ok} OK, {sin_cambios} sin cambios, {errores} con error, {sin_log} sin log · id_orquestacion={ID_ORQUESTACION}")
+if estado == "ERROR":
+    raise RuntimeError(error or f"{errores + sin_log} actividades con error. Consulta log_ejecucion con id_orquestacion={ID_ORQUESTACION}")
+
+# %%
+notebookutils.notebook.exit(json.dumps(dict(estado=estado, id_orquestacion=ID_ORQUESTACION, ok=ok, sin_cambios=sin_cambios, errores=errores)))

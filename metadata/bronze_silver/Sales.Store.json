@@ -1,0 +1,15 @@
+{
+  "objeto": "Sales.Store",
+  "activo": true,
+  "claves": [
+    "BusinessEntityID"
+  ],
+  "destino": {
+    "esquema": "Sales",
+    "tabla": "Store"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

@@ -1,0 +1,16 @@
+{
+  "entidad": "dim_promocion",
+  "tipo": "dimension",
+  "descripcion": "Promociones y ofertas especiales con su tipo, su categoría y el descuento que aplican. Un registro por promoción.",
+  "destino": {
+    "esquema": "dbo",
+    "tabla": "dim_promocion"
+  },
+  "clave": [
+    "IdPromocion"
+  ],
+  "consulta": "dim_promocion.sql",
+  "borrar_ausentes": true,
+  "depende_de": [],
+  "activo": true
+}

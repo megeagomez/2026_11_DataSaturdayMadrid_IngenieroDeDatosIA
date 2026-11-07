@@ -1,0 +1,11 @@
+# Power BI: ajustes locales y caché de Desktop
+**/.pbi/localSettings.json
+**/.pbi/cache.abf
+# Copia temporal del ensayo del 7/11
+ensayo_antes_7nov/
+# Entorno local
+.claude/
+__pycache__/
+*.pyc
+.env
+config.yaml

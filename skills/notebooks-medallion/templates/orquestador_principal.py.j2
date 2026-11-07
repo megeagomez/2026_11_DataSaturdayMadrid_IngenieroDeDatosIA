@@ -1,0 +1,133 @@
+# %% [markdown]
+# # Orquestador principal (orquestador de orquestadores)
+# Generado con la skill `notebooks-medallion` desde `metadata/config.json`. **No lo edites a mano.**
+#
+# Ejecuta en serie, y se para en el primer fallo:
+{% for o in orquestadores %}# {{ loop.index }}. `{{ o }}`
+{% endfor %}# {{ orquestadores | length + 1 }}. Refresco de los modelos semánticos: {% for m in modelos %}`{{ m.workspace }}/{{ m.modelo }}`{% if not loop.last %}, {% endif %}{% else %}ninguno{% endfor %}.
+#
+# Cada orquestador hijo escribe su fila en `log_orquestacion`; cada refresco de modelo, una fila en `log_ejecucion` (capa `modelo_semantico`).
+# Este notebook escribe una fila en `log_orquestacion` con capa `principal` y los `id_orquestacion` de los hijos en `parametros`.
+
+# %% [parameters]
+proyecto = "{{ c.proyecto }}"
+ws_control = "{{ c.workspace_control }}"
+lh_control = "{{ c.lakehouse_control }}"
+simular = False            # se pasa a los orquestadores hijos; con True tampoco se refrescan los modelos
+modo = "auto"              # auto | reconstruir, se pasa a orq_bronze_silver
+solo_capas = ""            # p. ej. "orq_silver_gold" para saltarse bronze → silver; vacío = todas
+procesar_modelos = True    # False: no refresca los modelos semánticos
+timeout_orquestador_s = {{ c.notebooks.timeout_orquestador_s }}
+timeout_refresco_s = 3600
+
+{% include "_comun.py.j2" %}
+
+# %%
+import time, requests
+
+CAPA = "principal"
+ID_ORQUESTACION = ID_EJECUCION
+ORQUESTADORES = {{ orquestadores | tojson }}
+MODELOS = {{ modelos | tojson(indent=4) }}
+API_PBI = "https://api.powerbi.com/v1.0/myorg"
+
+def cabeceras():
+    return {"Authorization": f"Bearer {notebookutils.credentials.getToken('pbi')}", "Content-Type": "application/json"}
+
+def id_por_nombre(url, nombre, campo="name"):
+    r = requests.get(url, headers=cabeceras(), timeout=60)
+    r.raise_for_status()
+    ids = [x["id"] for x in r.json()["value"] if x.get(campo) == nombre]
+    if not ids:
+        raise ValueError(f"No encuentro '{nombre}' en {url}")
+    return ids[0]
+
+def refrescar_modelo(workspace, modelo):
+    """Refresco completo con la API de refresh mejorada de Power BI; espera a que termine."""
+    ws = id_por_nombre(f"{API_PBI}/groups?$filter=name eq '{workspace}'", workspace)
+    ds = id_por_nombre(f"{API_PBI}/groups/{ws}/datasets", modelo)
+    r = requests.post(f"{API_PBI}/groups/{ws}/datasets/{ds}/refreshes", headers=cabeceras(), timeout=60,
+                      json={"type": "full", "commitMode": "transactional", "retryCount": 1})
+    if r.status_code != 202:
+        raise RuntimeError(f"Refresco de {modelo} rechazado: {r.status_code} {r.text[:500]}")
+    url_estado = r.headers.get("Location") or f"{API_PBI}/groups/{ws}/datasets/{ds}/refreshes/{r.headers['RequestId']}"
+    limite = time.time() + timeout_refresco_s
+    while time.time() < limite:
+        time.sleep(15)
+        e = requests.get(url_estado, headers=cabeceras(), timeout=60).json()
+        estado = e.get("extendedStatus") or e.get("status")
+        if estado in ("Completed", "Failed", "Cancelled", "Disabled", "TimedOut"):
+            if estado != "Completed":
+                detalle = json.dumps(e.get("messages") or e.get("objects") or e, ensure_ascii=False)[:3000]
+                raise RuntimeError(f"Refresco de {modelo}: {estado}. {detalle}")
+            return
+    raise TimeoutError(f"Refresco de {modelo} sin terminar tras {timeout_refresco_s} s")
+
+# %%
+estado, error, hijos = "OK", None, {}
+capas = [o for o in ORQUESTADORES if not solo_capas.strip() or o in [s.strip() for s in solo_capas.split(",")]]
+for orq in capas:
+    args = dict(simular=simular)
+    if orq == "orq_bronze_silver":
+        args["modo"] = modo
+    print(f"→ {orq}")
+    try:
+        salida = notebookutils.notebook.run(orq, timeout_orquestador_s, args)
+        hijos[orq] = json.loads(salida) if salida else {}
+    except Exception as e:
+        estado, error = "ERROR", f"{orq}: {type(e).__name__}: {e}"[:4000]
+        hijos[orq] = {"estado": "ERROR"}
+        break
+    print(f"  {orq}: {hijos[orq].get('estado')} · id_orquestacion={hijos[orq].get('id_orquestacion')}")
+
+# Modelos semánticos: solo si las capas han ido bien y no es una simulación.
+modelos_ok = modelos_error = 0
+if estado == "OK" and procesar_modelos and not simular:
+    for m in MODELOS:
+        inicio = dt.datetime.now(dt.timezone.utc).replace(tzinfo=None)
+        est, err = "OK", None
+        print(f"→ refresco {m['workspace']}/{m['modelo']}")
+        try:
+            refrescar_modelo(m["workspace"], m["modelo"])
+        except Exception as e:
+            est, err = "ERROR", f"{type(e).__name__}: {e}"[:4000]
+        fin = dt.datetime.now(dt.timezone.utc).replace(tzinfo=None)
+        registrar_ejecucion(id_orquestacion=ID_ORQUESTACION, capa="modelo_semantico", objeto=m["modelo"],
+                            destino=f"{m['workspace']}/{m['modelo']}", tipo_carga="refresh", estado=est,
+                            simulado=False, error=err, inicio=inicio, fin=fin,
+                            duracion_s=(fin - inicio).total_seconds(), parametros=json.dumps(m, ensure_ascii=False))
+        print(f"  {m['modelo']}: {est}" + (f" · {err}" if err else ""))
+        if est == "OK":
+            modelos_ok += 1
+        else:
+            modelos_error += 1
+    if modelos_error:
+        estado, error = "ERROR", f"{modelos_error} modelos semánticos con error. Consulta log_ejecucion con id_orquestacion={ID_ORQUESTACION}"
+
+# %%
+ok = sum(1 for h in hijos.values() if h.get("estado") == "OK") + modelos_ok
+errores = sum(1 for h in hijos.values() if h.get("estado") == "ERROR") + modelos_error
+actividades = len(capas) + (len(MODELOS) if procesar_modelos and not simular else 0)
+sin_log = actividades - ok - errores   # lo que no llegó a ejecutarse por un fallo anterior
+fin = dt.datetime.now(dt.timezone.utc).replace(tzinfo=None)
+esquema = T.StructType([T.StructField(n, t) for n, t in [
+    ("id_orquestacion", T.StringType()), ("proyecto", T.StringType()), ("capa", T.StringType()),
+    ("estado", T.StringType()), ("inicio", T.TimestampType()), ("fin", T.TimestampType()),
+    ("duracion_s", T.DoubleType()), ("actividades", T.LongType()), ("ok", T.LongType()),
+    ("sin_cambios", T.LongType()), ("errores", T.LongType()), ("sin_log", T.LongType()),
+    ("concurrencia", T.LongType()), ("parametros", T.StringType()), ("error", T.StringType()),
+    ("notebook", T.StringType()), ("usuario", T.StringType()), ("spark_app_id", T.StringType())]])
+parametros = dict(simular=simular, modo=modo, solo_capas=solo_capas, procesar_modelos=procesar_modelos,
+                  hijos={k: v.get("id_orquestacion") for k, v in hijos.items()})
+fila = (ID_ORQUESTACION, proyecto, CAPA, estado, INICIO, fin, (fin - INICIO).total_seconds(), actividades,
+        ok, 0, errores, sin_log, 1, json.dumps(parametros, ensure_ascii=False), error,
+        contexto("currentNotebookName"), contexto("userName"), spark.sparkContext.applicationId)
+(spark.createDataFrame([fila], esquema).write.format("delta").mode("append").option("mergeSchema", "true")
+     .save(f"{RUTA_CONTROL}/log_orquestacion"))
+print(f"{CAPA}: {estado} · {ok} OK, {errores} con error, {sin_log} sin ejecutar · id_orquestacion={ID_ORQUESTACION}")
+if estado == "ERROR":
+    raise RuntimeError(error)
+
+# %%
+notebookutils.notebook.exit(json.dumps(dict(estado=estado, id_orquestacion=ID_ORQUESTACION, ok=ok, errores=errores,
+                                            hijos={k: v.get("id_orquestacion") for k, v in hijos.items()})))

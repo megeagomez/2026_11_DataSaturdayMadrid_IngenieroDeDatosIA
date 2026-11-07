@@ -1,0 +1,16 @@
+{
+  "entidad": "dim_vendedor",
+  "tipo": "dimension",
+  "descripcion": "Comerciales con su nombre. Un registro por vendedor.",
+  "destino": {
+    "esquema": "dbo",
+    "tabla": "dim_vendedor"
+  },
+  "clave": [
+    "IdVendedor"
+  ],
+  "consulta": "dim_vendedor.sql",
+  "borrar_ausentes": true,
+  "depende_de": [],
+  "activo": true
+}

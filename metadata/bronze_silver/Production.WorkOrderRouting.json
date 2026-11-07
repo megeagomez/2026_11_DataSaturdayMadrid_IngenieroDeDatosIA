@@ -1,0 +1,17 @@
+{
+  "objeto": "Production.WorkOrderRouting",
+  "activo": true,
+  "claves": [
+    "WorkOrderID",
+    "ProductID",
+    "OperationSequence"
+  ],
+  "destino": {
+    "esquema": "Production",
+    "tabla": "WorkOrderRouting"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

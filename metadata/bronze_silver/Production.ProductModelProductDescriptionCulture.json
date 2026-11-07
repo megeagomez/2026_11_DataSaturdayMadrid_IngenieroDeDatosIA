@@ -1,0 +1,17 @@
+{
+  "objeto": "Production.ProductModelProductDescriptionCulture",
+  "activo": true,
+  "claves": [
+    "ProductModelID",
+    "ProductDescriptionID",
+    "CultureID"
+  ],
+  "destino": {
+    "esquema": "Production",
+    "tabla": "ProductModelProductDescriptionCulture"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

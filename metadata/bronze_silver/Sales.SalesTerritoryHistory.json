@@ -1,0 +1,17 @@
+{
+  "objeto": "Sales.SalesTerritoryHistory",
+  "activo": true,
+  "claves": [
+    "BusinessEntityID",
+    "StartDate",
+    "TerritoryID"
+  ],
+  "destino": {
+    "esquema": "Sales",
+    "tabla": "SalesTerritoryHistory"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

@@ -1,0 +1,16 @@
+{
+  "objeto": "Sales.SalesPersonQuotaHistory",
+  "activo": true,
+  "claves": [
+    "BusinessEntityID",
+    "QuotaDate"
+  ],
+  "destino": {
+    "esquema": "Sales",
+    "tabla": "SalesPersonQuotaHistory"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

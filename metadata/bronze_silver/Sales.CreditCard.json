@@ -1,0 +1,15 @@
+{
+  "objeto": "Sales.CreditCard",
+  "activo": true,
+  "claves": [
+    "CreditCardID"
+  ],
+  "destino": {
+    "esquema": "Sales",
+    "tabla": "CreditCard"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

@@ -1,0 +1,15 @@
+{
+  "objeto": "Production.ProductReview",
+  "activo": true,
+  "claves": [
+    "ProductReviewID"
+  ],
+  "destino": {
+    "esquema": "Production",
+    "tabla": "ProductReview"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

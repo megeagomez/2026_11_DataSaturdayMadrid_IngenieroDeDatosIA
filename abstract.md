@@ -1,0 +1,5 @@
+Un asistente de IA ya puede escribir SQL, generar un modelo semántico en TMDL o montar un pipeline en pocos minutos. Muchas veces lo hace bien. Otras veces se equivoca con la misma seguridad, y alguien tiene que verlo antes de que llegue a producción.
+
+En esta sesión cuento cómo uso la IA en proyectos reales de datos. Documento procesos ETL heredados reconstruyendo el linaje desde el origen hasta la tabla de hechos. Genero tests de reconciliación para una migración de proyectos en cualquier plataforma. Construyo y despliego modelos semánticos en Fabric y Power BI con TMDL y servidores MCP. Veremos qué tareas se hacen de verdad más rápido, cuáles no, y qué errores aparecen una y otra vez.
+
+Algunas cosas no cambian: hay que entender el negocio y los datos, validar los resultados y responder de lo que se despliega. Lo que sí cambia es la forma de trabajar. Hay que dar buen contexto a los modelos, convertir lo que sabe el equipo en instrucciones que se puedan reutilizar y poner controles para comprobar lo que se genera.

@@ -1,0 +1,15 @@
+{
+  "objeto": "Sales.SalesOrderHeader",
+  "activo": true,
+  "claves": [
+    "SalesOrderID"
+  ],
+  "destino": {
+    "esquema": "Sales",
+    "tabla": "SalesOrderHeader"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

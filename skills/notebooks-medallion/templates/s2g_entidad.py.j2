@@ -1,0 +1,83 @@
+# %% [markdown]
+# # Silver → Gold · {{ e.entidad }} ({{ e.tipo }})
+# Generado con la skill `notebooks-medallion` desde `metadata/silver_gold/{{ e.entidad }}.json` y `{{ e.consulta }}`.
+# **No lo edites a mano**: cambia la consulta o la metadata y vuelve a generar.
+#
+# {{ e.descripcion }}
+#
+# - **Destino:** `{{ c.lakehouse_gold }}.{{ e.destino.esquema }}.{{ e.destino.tabla }}`. **Grano y clave del MERGE:** `{{ e.clave | join(", ") }}`.
+# - **Lee:** {% for d in e.dependencias_tablas %}`{{ d.capa }}.{{ d.esquema }}.{{ d.tabla }}`{% if not loop.last %}, {% endif %}{% endfor %}.
+# - Inserta, actualiza (solo si cambia la fila) {% if e.borrar_ausentes %}y borra lo que ya no devuelve la consulta{% else %}y no borra nada{% endif %}. Sin SCD2.
+
+# %% [parameters]
+proyecto = "{{ c.proyecto }}"
+ws_datos = "{{ c.workspace_datos }}"
+ws_control = "{{ c.workspace_control }}"
+lh_silver = "{{ c.lakehouse_silver }}"
+lh_gold = "{{ c.lakehouse_gold }}"
+lh_control = "{{ c.lakehouse_control }}"
+entidad = "{{ e.entidad }}"
+esquema_destino = "{{ e.destino.esquema }}"
+tabla_destino = "{{ e.destino.tabla }}"
+borrar_ausentes = {{ "True" if e.borrar_ausentes else "False" }}
+evolucion_esquema = True   # añadir a Gold las columnas nuevas de la consulta
+simular = False            # True: ejecuta la consulta, valida y registra en el log, pero no escribe en Gold
+id_orquestacion = ""       # lo rellena el orquestador
+
+{% include "_comun.py.j2" %}
+
+# %%
+CAPA = "silver_gold"
+CLAVE = {{ e.clave | tojson }}
+RUTA_GOLD = f"{ruta_lakehouse(ws_datos, lh_gold)}/Tables/{esquema_destino}/{tabla_destino}"
+LAKEHOUSES = {"silver": lh_silver, "gold": lh_gold}
+# Tablas que lee la consulta: se registran como vistas temporales <capa>_<esquema>_<tabla>.
+DEPENDENCIAS = {{ e.dependencias_tablas | tojson }}
+
+CONSULTA = r"""
+{{ e.sql_ejecutable }}
+"""
+
+# %%
+m = dict(ficheros_leidos=0, filas_leidas=0, filas_unicas=0, filas_duplicadas=0, filas_borrado_origen=0,
+         filas_insertadas=0, filas_actualizadas=0, filas_borradas=0)
+estado, error = "OK", None
+try:
+    for d in DEPENDENCIAS:
+        ruta = f"{ruta_lakehouse(ws_datos, LAKEHOUSES[d['capa']])}/Tables/{d['esquema']}/{d['tabla']}"
+        spark.read.format("delta").load(ruta).createOrReplaceTempView(d["vista"])
+
+    df = spark.sql(CONSULTA).cache()
+    faltan = [c for c in CLAVE if c not in df.columns]
+    if faltan:
+        raise ValueError(f"{entidad}: la consulta no devuelve las columnas de la clave {faltan}")
+    m["filas_leidas"] = df.count()
+    nulos = df.filter(" OR ".join(f"`{c}` IS NULL" for c in CLAVE)).count()
+    if nulos:
+        raise ValueError(f"{entidad}: {nulos} filas con la clave {CLAVE} a NULL")
+    m["filas_unicas"] = df.select(*CLAVE).distinct().count()
+    m["filas_duplicadas"] = m["filas_leidas"] - m["filas_unicas"]
+    if m["filas_duplicadas"]:
+        raise ValueError(f"{entidad}: la consulta rompe el grano declarado {CLAVE}: {m['filas_duplicadas']} filas duplicadas")
+
+    salida = (con_hash(df, set())
+              .withColumn("_id_ejecucion", F.lit(ID_EJECUCION))
+              .withColumn("_procesado", F.current_timestamp()))
+    if not simular:
+        # Gold es la foto de la consulta: si cambia un tipo, se reescribe la tabla (o falla si no se puede borrar).
+        ins, act, bor = fusionar(RUTA_GOLD, salida, CLAVE, borrar_ausentes=borrar_ausentes,
+                                 cambio_tipo="reescribir" if borrar_ausentes else "fallar")
+        m.update(filas_insertadas=ins, filas_actualizadas=act, filas_borradas=bor)
+    df.unpersist()
+except Exception as e:
+    estado, error = "ERROR", f"{type(e).__name__}: {e}"[:4000]
+finally:
+    registrar_ejecucion(id_orquestacion=id_orquestacion or None, capa=CAPA, objeto=entidad,
+                        destino=f"{lh_gold}.{esquema_destino}.{tabla_destino}", tipo_carga="merge",
+                        estado=estado, simulado=bool(simular), error=error,
+                        parametros=json.dumps(dict(borrar_ausentes=borrar_ausentes, simular=simular)), **m)
+if error:
+    raise RuntimeError(error)
+
+# %%
+notebookutils.notebook.exit(json.dumps(dict(estado=estado, entidad=entidad, id_ejecucion=ID_EJECUCION, **m)))

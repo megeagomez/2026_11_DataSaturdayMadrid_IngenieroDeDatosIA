@@ -1,0 +1,133 @@
+/// Calendario diario (dim_fecha), del 1 de enero del primer año con pedidos al 31 de diciembre del año siguiente al último. Marcada como tabla de fechas.
+table Fecha
+	dataCategory: Time
+
+	/// Día natural. Clave de la dimensión.
+	column Fecha
+		dataType: dateTime
+		isKey
+		formatString: dd/mm/yyyy
+		summarizeBy: none
+		sourceColumn: Fecha
+
+	/// Año natural.
+	column 'Año'
+		dataType: int64
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: Anio
+
+	column 'Número de trimestre'
+		dataType: int64
+		isHidden
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: Trimestre
+
+	/// Trimestre del año (T1 a T4).
+	column Trimestre
+		dataType: string
+		summarizeBy: none
+		sourceColumn: NombreTrimestre
+		sortByColumn: 'Número de trimestre'
+
+	column 'Número de mes'
+		dataType: int64
+		isHidden
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: Mes
+
+	/// Nombre del mes, ordenado de enero a diciembre.
+	column Mes
+		dataType: string
+		summarizeBy: none
+		sourceColumn: NombreMes
+		sortByColumn: 'Número de mes'
+
+	column 'Clave año mes'
+		dataType: int64
+		isHidden
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: AnioMes
+
+	/// Mes y año (ene 2013). Úsalo como eje de las series mensuales.
+	column 'Año mes'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: NombreAnioMes
+		sortByColumn: 'Clave año mes'
+
+	column 'Clave año trimestre'
+		dataType: int64
+		isHidden
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: AnioTrimestre
+
+	/// Trimestre y año (T1 2013).
+	column 'Año trimestre'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: NombreAnioTrimestre
+		sortByColumn: 'Clave año trimestre'
+
+	/// Día del mes.
+	column 'Día'
+		dataType: int64
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: Dia
+
+	column 'Número de día de la semana'
+		dataType: int64
+		isHidden
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: DiaSemana
+
+	/// Día de la semana, de lunes a domingo.
+	column 'Día de la semana'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: NombreDiaSemana
+		sortByColumn: 'Número de día de la semana'
+
+	/// Verdadero si es sábado o domingo.
+	column 'Es fin de semana'
+		dataType: boolean
+		summarizeBy: none
+		sourceColumn: EsFinDeSemana
+
+	/// Último día del mes de la fecha.
+	column 'Fin de mes'
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		summarizeBy: none
+		sourceColumn: FinDeMes
+
+	hierarchy Calendario
+
+		level 'Año'
+			column: 'Año'
+
+		level Trimestre
+			column: Trimestre
+
+		level Mes
+			column: Mes
+
+		level Fecha
+			column: Fecha
+
+	partition Fecha = m
+		mode: import
+		source =
+				let
+					Origen = Sql.Database(#"Servidor SQL gold", #"Base de datos gold"),
+					#"Tabla de gold" = Origen{[Schema = "dbo", Item = "dim_fecha"]}[Data],
+					#"Columnas del modelo" = Table.SelectColumns(#"Tabla de gold", {"Fecha", "Anio", "Trimestre", "NombreTrimestre", "Mes", "NombreMes", "AnioMes", "NombreAnioMes", "AnioTrimestre", "NombreAnioTrimestre", "Dia", "DiaSemana", "NombreDiaSemana", "EsFinDeSemana", "FinDeMes"}),
+					#"Tipos aplicados" = Table.TransformColumnTypes(#"Columnas del modelo", {{"Fecha", type date}, {"Anio", Int64.Type}, {"Trimestre", Int64.Type}, {"NombreTrimestre", type text}, {"Mes", Int64.Type}, {"NombreMes", type text}, {"AnioMes", Int64.Type}, {"NombreAnioMes", type text}, {"AnioTrimestre", Int64.Type}, {"NombreAnioTrimestre", type text}, {"Dia", Int64.Type}, {"DiaSemana", Int64.Type}, {"NombreDiaSemana", type text}, {"EsFinDeSemana", type logical}, {"FinDeMes", type date}})
+				in
+					#"Tipos aplicados"

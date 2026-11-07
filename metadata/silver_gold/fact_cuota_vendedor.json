@@ -1,0 +1,20 @@
+{
+  "entidad": "fact_cuota_vendedor",
+  "tipo": "hecho",
+  "descripcion": "Cuota de ventas trimestral asignada a cada comercial. Un registro por comercial y fecha de cuota (primer día del trimestre).",
+  "destino": {
+    "esquema": "dbo",
+    "tabla": "fact_cuota_vendedor"
+  },
+  "clave": [
+    "IdVendedor",
+    "FechaCuota"
+  ],
+  "consulta": "fact_cuota_vendedor.sql",
+  "borrar_ausentes": true,
+  "depende_de": [
+    "dim_fecha",
+    "dim_vendedor"
+  ],
+  "activo": true
+}

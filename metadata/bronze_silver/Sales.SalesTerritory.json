@@ -1,0 +1,15 @@
+{
+  "objeto": "Sales.SalesTerritory",
+  "activo": true,
+  "claves": [
+    "TerritoryID"
+  ],
+  "destino": {
+    "esquema": "Sales",
+    "tabla": "SalesTerritory"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

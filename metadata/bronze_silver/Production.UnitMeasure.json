@@ -1,0 +1,15 @@
+{
+  "objeto": "Production.UnitMeasure",
+  "activo": true,
+  "claves": [
+    "UnitMeasureCode"
+  ],
+  "destino": {
+    "esquema": "Production",
+    "tabla": "UnitMeasure"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

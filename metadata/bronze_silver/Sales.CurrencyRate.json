@@ -1,0 +1,15 @@
+{
+  "objeto": "Sales.CurrencyRate",
+  "activo": true,
+  "claves": [
+    "CurrencyRateID"
+  ],
+  "destino": {
+    "esquema": "Sales",
+    "tabla": "CurrencyRate"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

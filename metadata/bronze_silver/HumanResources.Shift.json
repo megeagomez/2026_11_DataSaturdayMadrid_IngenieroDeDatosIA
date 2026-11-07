@@ -1,0 +1,15 @@
+{
+  "objeto": "HumanResources.Shift",
+  "activo": true,
+  "claves": [
+    "ShiftID"
+  ],
+  "destino": {
+    "esquema": "HumanResources",
+    "tabla": "Shift"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

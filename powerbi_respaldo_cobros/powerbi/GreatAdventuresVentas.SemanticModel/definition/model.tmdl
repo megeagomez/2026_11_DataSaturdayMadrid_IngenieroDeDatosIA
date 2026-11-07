@@ -1,0 +1,16 @@
+model Model
+	culture: es-ES
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	discourageImplicitMeasures
+	sourceQueryCulture: es-ES
+
+ref table Ventas
+ref table Cuotas
+ref table Fecha
+ref table Producto
+ref table Revendedor
+ref table Territorio
+ref table Vendedor
+ref table 'Promoción'
+ref table Cobros
+ref table 'Método de pago'

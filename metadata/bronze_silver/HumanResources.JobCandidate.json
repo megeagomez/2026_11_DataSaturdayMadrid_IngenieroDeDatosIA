@@ -1,0 +1,15 @@
+{
+  "objeto": "HumanResources.JobCandidate",
+  "activo": true,
+  "claves": [
+    "JobCandidateID"
+  ],
+  "destino": {
+    "esquema": "HumanResources",
+    "tabla": "JobCandidate"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

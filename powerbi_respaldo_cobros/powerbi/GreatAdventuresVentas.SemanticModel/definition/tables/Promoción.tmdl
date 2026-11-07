@@ -1,0 +1,73 @@
+/// Promociones y ofertas especiales (dim_promocion). El tipo 'No Discount' son las ventas sin promoción.
+table 'Promoción'
+
+	column IdPromocion
+		dataType: int64
+		isHidden
+		isAvailableInMdx: false
+		summarizeBy: none
+		sourceColumn: IdPromocion
+
+	/// Nombre de la promoción u oferta.
+	column 'Promoción'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Promocion
+
+	/// Tipo: No Discount, Volume Discount, Discontinued Product, Seasonal Discount…
+	column 'Tipo de promoción'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: TipoPromocion
+
+	/// A quién va dirigida: Reseller, Customer o No Discount.
+	column 'Categoría de promoción'
+		dataType: string
+		summarizeBy: none
+		sourceColumn: CategoriaPromocion
+
+	/// Descuento teórico que aplica la promoción.
+	column 'Descuento de la promoción'
+		dataType: decimal
+		formatString: 0%
+		summarizeBy: none
+		sourceColumn: PorcentajeDescuento
+
+	/// Unidades mínimas para que aplique.
+	column 'Cantidad mínima'
+		dataType: int64
+		formatString: #,##0
+		summarizeBy: none
+		sourceColumn: CantidadMinima
+
+	/// Unidades máximas. Vacía si no hay límite.
+	column 'Cantidad máxima'
+		dataType: int64
+		formatString: #,##0
+		summarizeBy: none
+		sourceColumn: CantidadMaxima
+
+	/// Inicio de la promoción.
+	column 'Fecha inicio'
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		summarizeBy: none
+		sourceColumn: FechaInicio
+
+	/// Fin de la promoción.
+	column 'Fecha fin'
+		dataType: dateTime
+		formatString: dd/mm/yyyy
+		summarizeBy: none
+		sourceColumn: FechaFin
+
+	partition 'Promoción' = m
+		mode: import
+		source =
+				let
+					Origen = Sql.Database(#"Servidor SQL gold", #"Base de datos gold"),
+					#"Tabla de gold" = Origen{[Schema = "dbo", Item = "dim_promocion"]}[Data],
+					#"Columnas del modelo" = Table.SelectColumns(#"Tabla de gold", {"IdPromocion", "Promocion", "TipoPromocion", "CategoriaPromocion", "PorcentajeDescuento", "CantidadMinima", "CantidadMaxima", "FechaInicio", "FechaFin"}),
+					#"Tipos aplicados" = Table.TransformColumnTypes(#"Columnas del modelo", {{"IdPromocion", Int64.Type}, {"Promocion", type text}, {"TipoPromocion", type text}, {"CategoriaPromocion", type text}, {"PorcentajeDescuento", Currency.Type}, {"CantidadMinima", Int64.Type}, {"CantidadMaxima", Int64.Type}, {"FechaInicio", type date}, {"FechaFin", type date}})
+				in
+					#"Tipos aplicados"

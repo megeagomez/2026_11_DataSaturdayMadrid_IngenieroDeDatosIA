@@ -1,0 +1,21 @@
+{
+  "proyecto": "GreatAdventures",
+  "workspace_datos": "GreatAdventures",
+  "workspace_control": "GreatAdventuresControl",
+  "lakehouse_bronze": "bronze",
+  "lakehouse_silver": "silver",
+  "lakehouse_gold": "gold",
+  "lakehouse_control": "control",
+  "carpeta_origen": "Files/Source/AdventureWorks2022",
+  "notebooks": {
+    "timeout_celda_s": 3600,
+    "timeout_orquestador_s": 43200,
+    "reintentos": 1
+  },
+  "modelos_semanticos": [
+    {
+      "workspace": "GreatAdventures",
+      "modelo": "GreatAdventuresVentas"
+    }
+  ]
+}

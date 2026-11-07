@@ -1,0 +1,135 @@
+# %%
+# Utilidades comunes (iguales en todos los notebooks generados): rutas, log en el lakehouse de control y MERGE.
+import json, uuid, datetime as dt
+from delta.tables import DeltaTable
+from pyspark.sql import functions as F, types as T, Window
+
+ONELAKE = "onelake.dfs.fabric.microsoft.com"
+
+def ruta_lakehouse(ws, lh):
+    return f"abfss://{ws}@{ONELAKE}/{lh}.Lakehouse"
+
+RUTA_CONTROL = f"{ruta_lakehouse(ws_control, lh_control)}/Tables/dbo"
+ID_EJECUCION = str(uuid.uuid4())
+INICIO = dt.datetime.now(dt.timezone.utc).replace(tzinfo=None)
+
+def contexto(clave, defecto=None):
+    try:
+        return notebookutils.runtime.context.get(clave) or defecto
+    except Exception:
+        return defecto
+
+ESQUEMA_LOG_EJECUCION = T.StructType([
+    T.StructField("id_ejecucion", T.StringType()),
+    T.StructField("id_orquestacion", T.StringType()),
+    T.StructField("proyecto", T.StringType()),
+    T.StructField("capa", T.StringType()),
+    T.StructField("objeto", T.StringType()),
+    T.StructField("destino", T.StringType()),
+    T.StructField("tipo_carga", T.StringType()),
+    T.StructField("estado", T.StringType()),
+    T.StructField("simulado", T.BooleanType()),
+    T.StructField("inicio", T.TimestampType()),
+    T.StructField("fin", T.TimestampType()),
+    T.StructField("duracion_s", T.DoubleType()),
+    T.StructField("ficheros_leidos", T.LongType()),
+    T.StructField("filas_leidas", T.LongType()),
+    T.StructField("filas_unicas", T.LongType()),
+    T.StructField("filas_duplicadas", T.LongType()),
+    T.StructField("filas_borrado_origen", T.LongType()),
+    T.StructField("filas_insertadas", T.LongType()),
+    T.StructField("filas_actualizadas", T.LongType()),
+    T.StructField("filas_borradas", T.LongType()),
+    T.StructField("marca_desde", T.StringType()),
+    T.StructField("marca_hasta", T.StringType()),
+    T.StructField("error", T.StringType()),
+    T.StructField("notebook", T.StringType()),
+    T.StructField("workspace", T.StringType()),
+    T.StructField("usuario", T.StringType()),
+    T.StructField("spark_app_id", T.StringType()),
+    T.StructField("parametros", T.StringType()),
+])
+
+def registrar_ejecucion(**valores):
+    """Añade una fila a control.dbo.log_ejecucion. Solo append: no hay conflictos entre notebooks en paralelo."""
+    fin = dt.datetime.now(dt.timezone.utc).replace(tzinfo=None)
+    base = dict(id_ejecucion=ID_EJECUCION, proyecto=proyecto, inicio=INICIO, fin=fin,
+                duracion_s=(fin - INICIO).total_seconds(), notebook=contexto("currentNotebookName"),
+                workspace=contexto("currentWorkspaceName"), usuario=contexto("userName"),
+                spark_app_id=spark.sparkContext.applicationId)
+    base.update(valores)
+    fila = tuple(base.get(c.name) for c in ESQUEMA_LOG_EJECUCION)
+    (spark.createDataFrame([fila], ESQUEMA_LOG_EJECUCION)
+         .write.format("delta").mode("append").option("mergeSchema", "true")
+         .save(f"{RUTA_CONTROL}/log_ejecucion"))
+
+def es_tabla_delta(ruta):
+    try:
+        return DeltaTable.isDeltaTable(spark, ruta)
+    except Exception:
+        return False
+
+def con_hash(df, excluir):
+    """Añade _hash_fila: sha2 de las columnas de negocio. Sirve para no reescribir filas que no han cambiado."""
+    cols = [c for c in df.columns if c not in excluir and not c.startswith("_")]
+    return df.withColumn("_hash_fila", F.sha2(F.concat_ws("\u0001", *[F.coalesce(F.col(c).cast("string"), F.lit("\u0000")) for c in sorted(cols)]), 256))
+
+def anadir_columnas_nuevas(ruta, df, evolucion):
+    """Evolución de esquema controlada: añade al destino las columnas nuevas del origen o falla si no está permitido."""
+    destino = spark.read.format("delta").load(ruta)
+    nuevas = [f for f in df.schema.fields if f.name not in destino.columns]
+    if not nuevas:
+        return []
+    if not evolucion:
+        raise ValueError(f"Columnas nuevas en origen y evolucion_esquema=False: {[f.name for f in nuevas]}")
+    cols = ", ".join(f"`{f.name}` {f.dataType.simpleString()}" for f in nuevas)
+    spark.sql(f"ALTER TABLE delta.`{ruta}` ADD COLUMNS ({cols})")
+    return [f.name for f in nuevas]
+
+def columnas_con_tipo_cambiado(ruta, df):
+    """Columnas que existen en destino con un tipo distinto al del origen."""
+    actual = {f.name: f.dataType for f in spark.read.format("delta").load(ruta).schema.fields}
+    return [f"{f.name}: {actual[f.name].simpleString()} -> {f.dataType.simpleString()}"
+            for f in df.schema.fields if f.name in actual and actual[f.name] != f.dataType]
+
+def fusionar(ruta, df, claves, borrar_ausentes, col_borrado=None, cambio_tipo="ignorar"):
+    """MERGE contra Delta. df ya viene deduplicado por claves y con _hash_fila.
+    - col_borrado (opcional): columna booleana del origen; si es True, la fila se borra en destino.
+    - borrar_ausentes: borra del destino lo que no viene en el origen (instantánea completa).
+    - cambio_tipo: qué hacer si una columna existente cambia de tipo en el origen.
+        "ignorar"    el MERGE convierte al tipo del destino (comportamiento histórico).
+        "reescribir" reescribe la tabla con el esquema del origen (solo tiene sentido con borrar_ausentes).
+        "fallar"     lanza un error.
+    Devuelve (insertadas, actualizadas, borradas)."""
+    cols = [c for c in df.columns if c != col_borrado]
+    if not es_tabla_delta(ruta):
+        datos = df.filter(~F.col(col_borrado)) if col_borrado else df
+        datos.select(*cols).write.format("delta").mode("overwrite").option("overwriteSchema", "true").save(ruta)
+        return spark.read.format("delta").load(ruta).count(), 0, 0
+    if cambio_tipo != "ignorar":
+        cambiados = columnas_con_tipo_cambiado(ruta, df.select(*cols))
+        if cambiados and cambio_tipo == "fallar":
+            raise ValueError(f"Cambio de tipo en {cambiados} y la tabla no se puede reescribir (borrar_ausentes=False)")
+        if cambiados:
+            print(f"Cambio de tipo en {cambiados}: se reescribe la tabla con el esquema de la consulta")
+            antes = spark.read.format("delta").load(ruta).count()
+            datos = df.filter(~F.col(col_borrado)) if col_borrado else df
+            datos.select(*cols).write.format("delta").mode("overwrite").option("overwriteSchema", "true").save(ruta)
+            return spark.read.format("delta").load(ruta).count(), 0, antes
+    anadir_columnas_nuevas(ruta, df.select(*cols), evolucion_esquema)
+    cond = " AND ".join(f"t.`{c}` <=> s.`{c}`" for c in claves)
+    asignar = {f"`{c}`": f"s.`{c}`" for c in cols}
+    m = DeltaTable.forPath(spark, ruta).alias("t").merge(df.alias("s"), cond)
+    if col_borrado:
+        m = m.whenMatchedDelete(condition=f"s.`{col_borrado}`")
+        m = m.whenMatchedUpdate(condition=f"NOT s.`{col_borrado}` AND NOT (t._hash_fila <=> s._hash_fila)", set=asignar)
+        m = m.whenNotMatchedInsert(condition=f"NOT s.`{col_borrado}`", values=asignar)
+    else:
+        m = m.whenMatchedUpdate(condition="NOT (t._hash_fila <=> s._hash_fila)", set=asignar)
+        m = m.whenNotMatchedInsert(values=asignar)
+    if borrar_ausentes:
+        m = m.whenNotMatchedBySourceDelete()
+    m.execute()
+    met = DeltaTable.forPath(spark, ruta).history(1).select("operationMetrics").first()[0] or {}
+    return (int(met.get("numTargetRowsInserted", 0)), int(met.get("numTargetRowsUpdated", 0)),
+            int(met.get("numTargetRowsDeleted", 0)))

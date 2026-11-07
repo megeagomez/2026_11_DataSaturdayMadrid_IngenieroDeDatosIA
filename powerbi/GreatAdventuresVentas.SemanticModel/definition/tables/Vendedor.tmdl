@@ -1,0 +1,39 @@
+/// Comerciales del canal de revendedores (dim_vendedor).
+table Vendedor
+
+	column IdVendedor
+		dataType: int64
+		isHidden
+		summarizeBy: none
+		sourceColumn: IdVendedor
+
+	/// Nombre del comercial que gestiona el pedido.
+	column Vendedor
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Vendedor
+
+	/// Cuota vigente del comercial según su ficha. Para el histórico, la medida Cuota.
+	column 'Cuota de ventas actual'
+		dataType: decimal
+		formatString: \$#,##0
+		summarizeBy: none
+		sourceColumn: CuotaVentas
+
+	/// Porcentaje de comisión actual del comercial.
+	column '% Comisión'
+		dataType: decimal
+		formatString: 0.0%
+		summarizeBy: none
+		sourceColumn: PorcentajeComision
+
+	partition Vendedor = m
+		mode: import
+		source =
+				let
+					Origen = Sql.Database(#"Servidor SQL gold", #"Base de datos gold"),
+					#"Tabla de gold" = Origen{[Schema = "dbo", Item = "dim_vendedor"]}[Data],
+					#"Columnas del modelo" = Table.SelectColumns(#"Tabla de gold", {"IdVendedor", "Vendedor", "CuotaVentas", "PorcentajeComision"}),
+					#"Tipos aplicados" = Table.TransformColumnTypes(#"Columnas del modelo", {{"IdVendedor", Int64.Type}, {"Vendedor", type text}, {"CuotaVentas", Currency.Type}, {"PorcentajeComision", Currency.Type}})
+				in
+					#"Tipos aplicados"

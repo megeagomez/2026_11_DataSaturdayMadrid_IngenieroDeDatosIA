@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "GreatAdventuresVentas"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "5d6f0f1e-9a4b-4c2e-8f3a-2b7c1d9e4a61"
+  }
+}

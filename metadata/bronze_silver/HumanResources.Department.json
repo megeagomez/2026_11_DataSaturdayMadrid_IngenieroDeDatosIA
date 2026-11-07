@@ -1,0 +1,15 @@
+{
+  "objeto": "HumanResources.Department",
+  "activo": true,
+  "claves": [
+    "DepartmentID"
+  ],
+  "destino": {
+    "esquema": "HumanResources",
+    "tabla": "Department"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

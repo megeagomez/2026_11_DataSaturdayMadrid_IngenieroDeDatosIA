@@ -1,0 +1,15 @@
+{
+  "objeto": "Production.WorkOrder",
+  "activo": true,
+  "claves": [
+    "WorkOrderID"
+  ],
+  "destino": {
+    "esquema": "Production",
+    "tabla": "WorkOrder"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

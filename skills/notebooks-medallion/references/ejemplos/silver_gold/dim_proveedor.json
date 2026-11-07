@@ -1,0 +1,11 @@
+{
+  "entidad": "dim_proveedor",
+  "tipo": "dimension",
+  "descripcion": "Proveedores de compras. Un registro por proveedor.",
+  "destino": { "esquema": "dbo", "tabla": "dim_proveedor" },
+  "clave": ["IdProveedor"],
+  "consulta": "dim_proveedor.sql",
+  "borrar_ausentes": true,
+  "depende_de": [],
+  "activo": true
+}

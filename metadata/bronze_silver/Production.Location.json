@@ -1,0 +1,15 @@
+{
+  "objeto": "Production.Location",
+  "activo": true,
+  "claves": [
+    "LocationID"
+  ],
+  "destino": {
+    "esquema": "Production",
+    "tabla": "Location"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

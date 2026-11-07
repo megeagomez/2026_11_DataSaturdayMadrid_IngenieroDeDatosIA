@@ -1,0 +1,342 @@
+/// Ventas a revendedores a grano de línea de pedido (fact_ventas_revendedor). Todos los importes en dólares.
+table Ventas
+
+	/// Importe de las líneas de pedido después de descuentos, sin portes ni impuestos. Es la cifra de venta de referencia.
+	measure 'Ventas netas' = SUM('Ventas'[ImporteLinea])
+		formatString: \$#,##0
+		displayFolder: Ventas
+
+	/// Importe a precio unitario de venta antes de aplicar el descuento de la promoción (precio × cantidad).
+	measure 'Ventas brutas' = SUM('Ventas'[ImporteBruto])
+		formatString: \$#,##0
+		displayFolder: Ventas
+
+	/// Unidades de producto vendidas.
+	measure Unidades = SUM('Ventas'[Cantidad])
+		formatString: #,##0
+		displayFolder: Ventas
+
+	/// Número de pedidos distintos de revendedores.
+	measure Pedidos = DISTINCTCOUNT('Ventas'[IdPedido])
+		formatString: #,##0
+		displayFolder: Ventas
+
+	/// Ventas netas por pedido (AOV, average order value). Sube si los revendedores compran más por pedido.
+	measure 'Ticket medio' = DIVIDE([Ventas netas], [Pedidos])
+		formatString: \$#,##0
+		displayFolder: Ventas
+
+	/// Tamaño medio del pedido en unidades.
+	measure 'Unidades por pedido' = DIVIDE([Unidades], [Pedidos])
+		formatString: #,##0.0
+		displayFolder: Ventas
+
+	/// Ventas netas por unidad: precio realmente cobrado después de descuentos.
+	measure 'Precio medio de venta' = DIVIDE([Ventas netas], [Unidades])
+		formatString: \$#,##0.00
+		displayFolder: Ventas
+
+	/// Portes facturados. Vienen de la cabecera del pedido y en gold se reparten entre las líneas por el peso de su importe.
+	measure Portes = SUM('Ventas'[Importe de portes])
+		formatString: \$#,##0
+		displayFolder: Ventas
+
+	/// Impuestos facturados, repartidos entre las líneas igual que los portes.
+	measure Impuestos = SUM('Ventas'[Importe de impuestos])
+		formatString: \$#,##0
+		displayFolder: Ventas
+
+	/// Ventas netas más portes e impuestos: lo que se factura al revendedor.
+	measure 'Total facturado' = [Ventas netas] + [Portes] + [Impuestos]
+		formatString: \$#,##0
+		displayFolder: Ventas
+
+	/// Peso de los portes sobre las ventas netas.
+	measure '% Portes sobre ventas' = DIVIDE([Portes], [Ventas netas])
+		formatString: 0.00%
+		displayFolder: Ventas
+
+	/// Importe que se deja de ingresar por promociones: ventas brutas menos ventas netas.
+	measure Descuento = [Ventas brutas] - [Ventas netas]
+		formatString: \$#,##0
+		displayFolder: Descuentos
+
+	/// Tasa de descuento (markdown rate): parte de las ventas brutas que se pierde por promociones.
+	measure '% Descuento' = DIVIDE([Descuento], [Ventas brutas])
+		formatString: 0.00%
+		displayFolder: Descuentos
+
+	/// Parte de las ventas netas que se vendió con alguna promoción (todas salvo el tipo 'No Discount').
+	measure '% Ventas en promoción' = ```
+			VAR _enPromocion =
+				CALCULATE([Ventas netas], KEEPFILTERS('Promoción'[Tipo de promoción] <> "No Discount"))
+			RETURN
+				DIVIDE(_enPromocion, [Ventas netas])
+			```
+		formatString: 0.0%
+		displayFolder: Descuentos
+
+	/// Coste de la mercancía vendida: coste estándar del producto vigente en la fecha del pedido × unidades.
+	measure Coste = SUM('Ventas'[Importe de coste])
+		formatString: \$#,##0
+		displayFolder: Rentabilidad
+
+	/// Ventas netas menos coste de la mercancía vendida. No descuenta portes.
+	measure 'Margen bruto' = [Ventas netas] - [Coste]
+		formatString: \$#,##0
+		displayFolder: Rentabilidad
+
+	/// Margen bruto sobre ventas netas.
+	measure '% Margen bruto' = DIVIDE([Margen bruto], [Ventas netas])
+		formatString: 0.0%
+		displayFolder: Rentabilidad
+
+	/// Margen bruto medio que deja cada pedido.
+	measure 'Margen por pedido' = DIVIDE([Margen bruto], [Pedidos])
+		formatString: \$#,##0
+		displayFolder: Rentabilidad
+
+	/// Revendedores con al menos un pedido en el periodo.
+	measure 'Revendedores activos' = DISTINCTCOUNT('Ventas'[IdRevendedor])
+		formatString: #,##0
+		displayFolder: Revendedores
+
+	/// Ventas netas medias por revendedor activo.
+	measure 'Ventas por revendedor' = DIVIDE([Ventas netas], [Revendedores activos])
+		formatString: \$#,##0
+		displayFolder: Revendedores
+
+	/// Frecuencia de compra: pedidos medios por revendedor activo en el periodo.
+	measure 'Pedidos por revendedor' = DIVIDE([Pedidos], [Revendedores activos])
+		formatString: #,##0.0
+		displayFolder: Revendedores
+
+	/// Revendedores activos cuyo primer pedido de la historia cae dentro del periodo seleccionado.
+	measure 'Revendedores nuevos' = ```
+			VAR _inicio = MIN('Fecha'[Fecha])
+			VAR _revendedores =
+				ADDCOLUMNS(
+					VALUES('Ventas'[IdRevendedor]),
+					"@PrimerPedido", CALCULATE(MIN('Ventas'[FechaPedido]), REMOVEFILTERS('Fecha'))
+				)
+			RETURN
+				COUNTROWS(FILTER(_revendedores, [@PrimerPedido] >= _inicio))
+			```
+		formatString: #,##0
+		displayFolder: Revendedores
+
+	/// De los revendedores que compraron en el mismo periodo del año anterior, qué parte ha vuelto a comprar en este.
+	measure '% Retención de revendedores' = ```
+			VAR _ultimaVenta = CALCULATE(MAX('Ventas'[FechaPedido]), REMOVEFILTERS())
+			VAR _fechasConVentas = CALCULATETABLE(VALUES('Fecha'[Fecha]), KEEPFILTERS('Fecha'[Fecha] <= _ultimaVenta))
+			VAR _anteriores =
+				CALCULATETABLE(VALUES('Ventas'[IdRevendedor]), SAMEPERIODLASTYEAR(_fechasConVentas))
+			VAR _actuales = VALUES('Ventas'[IdRevendedor])
+			RETURN
+				DIVIDE(COUNTROWS(INTERSECT(_anteriores, _actuales)), COUNTROWS(_anteriores))
+			```
+		formatString: 0.0%
+		displayFolder: Revendedores
+
+	/// Concentración de clientes: parte de las ventas netas que hacen los 10 revendedores que más compran en el periodo.
+	measure '% Ventas top 10 revendedores' = ```
+			VAR _top10 = TOPN(10, VALUES('Revendedor'[Revendedor]), [Ventas netas], DESC)
+			VAR _ventasTop10 = CALCULATE([Ventas netas], KEEPFILTERS(_top10))
+			RETURN
+				DIVIDE(_ventasTop10, [Ventas netas])
+			```
+		formatString: 0.0%
+		displayFolder: Revendedores
+
+	/// Referencias distintas con ventas en el periodo (amplitud del surtido vendido).
+	measure 'Productos vendidos' = DISTINCTCOUNT('Ventas'[IdProducto])
+		formatString: #,##0
+		displayFolder: Producto
+
+	/// Peso de la selección (producto, revendedor, territorio, comercial o promoción) sobre las ventas netas del periodo. Respeta el filtro de fecha.
+	measure '% Sobre ventas totales' = ```
+			VAR _total = CALCULATE([Ventas netas], REMOVEFILTERS('Producto'), REMOVEFILTERS('Revendedor'), REMOVEFILTERS('Territorio'), REMOVEFILTERS('Vendedor'), REMOVEFILTERS('Promoción'))
+			RETURN
+				DIVIDE([Ventas netas], _total)
+			```
+		formatString: 0.0%
+		displayFolder: Producto
+
+	/// Ventas netas del mismo periodo del año anterior (AA). Si el periodo es el último año con datos, compara solo hasta la última fecha con ventas (año en curso frente al mismo tramo del anterior).
+	measure 'Ventas netas AA' = ```
+			VAR _ultimaVenta = CALCULATE(MAX('Ventas'[FechaPedido]), REMOVEFILTERS())
+			VAR _fechasConVentas = CALCULATETABLE(VALUES('Fecha'[Fecha]), KEEPFILTERS('Fecha'[Fecha] <= _ultimaVenta))
+			RETURN
+				CALCULATE([Ventas netas], SAMEPERIODLASTYEAR(_fechasConVentas))
+			```
+		formatString: \$#,##0
+		displayFolder: Inteligencia de tiempo
+
+	/// Variación de las ventas netas frente al mismo periodo del año anterior (YoY).
+	measure '% Crecimiento ventas' = ```
+			VAR _anterior = [Ventas netas AA]
+			VAR _actual = [Ventas netas]
+			RETURN
+				IF(NOT ISBLANK(_anterior) && NOT ISBLANK(_actual), DIVIDE(_actual - _anterior, _anterior))
+			```
+		formatString: 0.0%
+		displayFolder: Inteligencia de tiempo
+
+	/// Ventas netas acumuladas desde el 1 de enero hasta la fecha del contexto (YTD, year to date).
+	measure 'Ventas netas YTD' = CALCULATE([Ventas netas], DATESYTD('Fecha'[Fecha]))
+		formatString: \$#,##0
+		displayFolder: Inteligencia de tiempo
+
+	/// Acumulado del año anterior hasta la misma fecha.
+	measure 'Ventas netas YTD AA' = ```
+			VAR _ultimaVenta = CALCULATE(MAX('Ventas'[FechaPedido]), REMOVEFILTERS())
+			VAR _fechasConVentas = CALCULATETABLE(VALUES('Fecha'[Fecha]), KEEPFILTERS('Fecha'[Fecha] <= _ultimaVenta))
+			RETURN
+				CALCULATE([Ventas netas], SAMEPERIODLASTYEAR(DATESYTD(_fechasConVentas)))
+			```
+		formatString: \$#,##0
+		displayFolder: Inteligencia de tiempo
+
+	/// Margen bruto del mismo periodo del año anterior.
+	measure 'Margen bruto AA' = ```
+			VAR _ultimaVenta = CALCULATE(MAX('Ventas'[FechaPedido]), REMOVEFILTERS())
+			VAR _fechasConVentas = CALCULATETABLE(VALUES('Fecha'[Fecha]), KEEPFILTERS('Fecha'[Fecha] <= _ultimaVenta))
+			RETURN
+				CALCULATE([Margen bruto], SAMEPERIODLASTYEAR(_fechasConVentas))
+			```
+		formatString: \$#,##0
+		displayFolder: Inteligencia de tiempo
+
+	/// Variación del margen bruto frente al mismo periodo del año anterior.
+	measure '% Crecimiento margen' = ```
+			VAR _anterior = [Margen bruto AA]
+			VAR _actual = [Margen bruto]
+			RETURN
+				IF(NOT ISBLANK(_anterior) && NOT ISBLANK(_actual), DIVIDE(_actual - _anterior, _anterior))
+			```
+		formatString: 0.0%
+		displayFolder: Inteligencia de tiempo
+
+	/// Pedidos del mismo periodo del año anterior.
+	measure 'Pedidos AA' = ```
+			VAR _ultimaVenta = CALCULATE(MAX('Ventas'[FechaPedido]), REMOVEFILTERS())
+			VAR _fechasConVentas = CALCULATETABLE(VALUES('Fecha'[Fecha]), KEEPFILTERS('Fecha'[Fecha] <= _ultimaVenta))
+			RETURN
+				CALCULATE([Pedidos], SAMEPERIODLASTYEAR(_fechasConVentas))
+			```
+		formatString: #,##0
+		displayFolder: Inteligencia de tiempo
+
+	/// Media mensual de las ventas netas de los 3 últimos meses: suaviza la estacionalidad de los pedidos de revendedor.
+	measure 'Ventas netas media móvil 3 meses' = ```
+			VAR _ultimaFecha = MAX('Fecha'[Fecha])
+			VAR _periodo = DATESINPERIOD('Fecha'[Fecha], _ultimaFecha, -3, MONTH)
+			RETURN
+				DIVIDE(CALCULATE([Ventas netas], _periodo), 3)
+			```
+		formatString: \$#,##0
+		displayFolder: Inteligencia de tiempo
+
+	/// Identificador del pedido. Solo para contar pedidos.
+	column IdPedido
+		dataType: int64
+		isHidden
+		isAvailableInMdx: false
+		summarizeBy: none
+		sourceColumn: IdPedido
+
+	column IdProducto
+		dataType: int64
+		isHidden
+		isAvailableInMdx: false
+		summarizeBy: none
+		sourceColumn: IdProducto
+
+	column IdRevendedor
+		dataType: int64
+		isHidden
+		isAvailableInMdx: false
+		summarizeBy: none
+		sourceColumn: IdRevendedor
+
+	column IdTerritorio
+		dataType: int64
+		isHidden
+		isAvailableInMdx: false
+		summarizeBy: none
+		sourceColumn: IdTerritorio
+
+	column IdVendedor
+		dataType: int64
+		isHidden
+		isAvailableInMdx: false
+		summarizeBy: none
+		sourceColumn: IdVendedor
+
+	column IdPromocion
+		dataType: int64
+		isHidden
+		isAvailableInMdx: false
+		summarizeBy: none
+		sourceColumn: IdPromocion
+
+	column FechaPedido
+		dataType: dateTime
+		isHidden
+		isAvailableInMdx: false
+		formatString: dd/mm/yyyy
+		summarizeBy: none
+		sourceColumn: FechaPedido
+
+	column Cantidad
+		dataType: int64
+		isHidden
+		isAvailableInMdx: false
+		summarizeBy: sum
+		sourceColumn: Cantidad
+
+	column ImporteBruto
+		dataType: decimal
+		isHidden
+		isAvailableInMdx: false
+		summarizeBy: sum
+		sourceColumn: ImporteBruto
+
+	column ImporteLinea
+		dataType: decimal
+		isHidden
+		isAvailableInMdx: false
+		summarizeBy: sum
+		sourceColumn: ImporteLinea
+
+	column 'Importe de coste'
+		dataType: decimal
+		isHidden
+		isAvailableInMdx: false
+		summarizeBy: sum
+		sourceColumn: Coste
+
+	column 'Importe de portes'
+		dataType: decimal
+		isHidden
+		isAvailableInMdx: false
+		summarizeBy: sum
+		sourceColumn: Portes
+
+	column 'Importe de impuestos'
+		dataType: decimal
+		isHidden
+		isAvailableInMdx: false
+		summarizeBy: sum
+		sourceColumn: Impuestos
+
+	partition Ventas = m
+		mode: import
+		source =
+				let
+					Origen = Sql.Database(#"Servidor SQL gold", #"Base de datos gold"),
+					#"Tabla de gold" = Origen{[Schema = "dbo", Item = "fact_ventas_revendedor"]}[Data],
+					#"Columnas del modelo" = Table.SelectColumns(#"Tabla de gold", {"IdPedido", "IdProducto", "IdRevendedor", "IdTerritorio", "IdVendedor", "IdPromocion", "FechaPedido", "Cantidad", "ImporteBruto", "ImporteLinea", "Coste", "Portes", "Impuestos"}),
+					#"Tipos aplicados" = Table.TransformColumnTypes(#"Columnas del modelo", {{"IdPedido", Int64.Type}, {"IdProducto", Int64.Type}, {"IdRevendedor", Int64.Type}, {"IdTerritorio", Int64.Type}, {"IdVendedor", Int64.Type}, {"IdPromocion", Int64.Type}, {"FechaPedido", type date}, {"Cantidad", Int64.Type}, {"ImporteBruto", Currency.Type}, {"ImporteLinea", Currency.Type}, {"Coste", Currency.Type}, {"Portes", Currency.Type}, {"Impuestos", Currency.Type}})
+				in
+					#"Tipos aplicados"

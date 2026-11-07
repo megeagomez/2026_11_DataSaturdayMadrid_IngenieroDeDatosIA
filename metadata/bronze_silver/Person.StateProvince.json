@@ -1,0 +1,15 @@
+{
+  "objeto": "Person.StateProvince",
+  "activo": true,
+  "claves": [
+    "StateProvinceID"
+  ],
+  "destino": {
+    "esquema": "Person",
+    "tabla": "StateProvince"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

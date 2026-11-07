@@ -1,0 +1,16 @@
+{
+  "objeto": "Sales.SalesOrderDetail",
+  "activo": true,
+  "claves": [
+    "SalesOrderID",
+    "SalesOrderDetailID"
+  ],
+  "destino": {
+    "esquema": "Sales",
+    "tabla": "SalesOrderDetail"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

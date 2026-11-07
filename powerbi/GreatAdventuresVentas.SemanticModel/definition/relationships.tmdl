@@ -1,0 +1,35 @@
+relationship 'Ventas - Fecha'
+	fromColumn: Ventas.FechaPedido
+	toColumn: Fecha.Fecha
+
+relationship 'Ventas - Producto'
+	fromColumn: Ventas.IdProducto
+	toColumn: Producto.IdProducto
+
+relationship 'Ventas - Revendedor'
+	fromColumn: Ventas.IdRevendedor
+	toColumn: Revendedor.IdRevendedor
+
+relationship 'Ventas - Territorio'
+	fromColumn: Ventas.IdTerritorio
+	toColumn: Territorio.IdTerritorio
+
+relationship 'Ventas - Vendedor'
+	fromColumn: Ventas.IdVendedor
+	toColumn: Vendedor.IdVendedor
+
+relationship 'Ventas - Promoción'
+	fromColumn: Ventas.IdPromocion
+	toColumn: 'Promoción'.IdPromocion
+
+relationship 'Cuotas - Fecha'
+	fromColumn: Cuotas.FechaCuota
+	toColumn: Fecha.Fecha
+
+relationship 'Cuotas - Vendedor'
+	fromColumn: Cuotas.IdVendedor
+	toColumn: Vendedor.IdVendedor
+
+relationship 'Cobros - Método de pago'
+	fromColumn: Cobros.MetodoPago
+	toColumn: 'Método de pago'.'Método de pago'

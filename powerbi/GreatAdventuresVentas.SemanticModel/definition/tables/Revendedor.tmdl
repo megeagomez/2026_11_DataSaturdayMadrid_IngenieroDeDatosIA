@@ -1,0 +1,61 @@
+/// Revendedores (tiendas y distribuidores) con la ubicación de su oficina principal (dim_revendedor). Son los clientes del canal.
+table Revendedor
+
+	column IdRevendedor
+		dataType: int64
+		isHidden
+		isAvailableInMdx: false
+		summarizeBy: none
+		sourceColumn: IdRevendedor
+
+	/// Nombre de la tienda o distribuidor que compra a la empresa.
+	column Revendedor
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Revendedor
+
+	/// Ciudad de la oficina principal del revendedor.
+	column Ciudad
+		dataType: string
+		dataCategory: City
+		summarizeBy: none
+		sourceColumn: Ciudad
+
+	/// Estado o provincia de la oficina principal.
+	column Provincia
+		dataType: string
+		dataCategory: StateOrProvince
+		summarizeBy: none
+		sourceColumn: Provincia
+
+	/// País de la oficina principal del revendedor.
+	column 'País'
+		dataType: string
+		dataCategory: Country
+		summarizeBy: none
+		sourceColumn: Pais
+
+	hierarchy 'Ubicación del revendedor'
+
+		level 'País'
+			column: 'País'
+
+		level Provincia
+			column: Provincia
+
+		level Ciudad
+			column: Ciudad
+
+		level Revendedor
+			column: Revendedor
+
+	partition Revendedor = m
+		mode: import
+		source =
+				let
+					Origen = Sql.Database(#"Servidor SQL gold", #"Base de datos gold"),
+					#"Tabla de gold" = Origen{[Schema = "dbo", Item = "dim_revendedor"]}[Data],
+					#"Columnas del modelo" = Table.SelectColumns(#"Tabla de gold", {"IdRevendedor", "Revendedor", "Ciudad", "Provincia", "Pais"}),
+					#"Tipos aplicados" = Table.TransformColumnTypes(#"Columnas del modelo", {{"IdRevendedor", Int64.Type}, {"Revendedor", type text}, {"Ciudad", type text}, {"Provincia", type text}, {"Pais", type text}})
+				in
+					#"Tipos aplicados"

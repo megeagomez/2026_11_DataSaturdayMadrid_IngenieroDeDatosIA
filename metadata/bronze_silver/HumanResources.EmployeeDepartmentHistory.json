@@ -1,0 +1,18 @@
+{
+  "objeto": "HumanResources.EmployeeDepartmentHistory",
+  "activo": true,
+  "claves": [
+    "BusinessEntityID",
+    "StartDate",
+    "DepartmentID",
+    "ShiftID"
+  ],
+  "destino": {
+    "esquema": "HumanResources",
+    "tabla": "EmployeeDepartmentHistory"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

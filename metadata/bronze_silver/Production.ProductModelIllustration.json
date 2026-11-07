@@ -1,0 +1,16 @@
+{
+  "objeto": "Production.ProductModelIllustration",
+  "activo": true,
+  "claves": [
+    "ProductModelID",
+    "IllustrationID"
+  ],
+  "destino": {
+    "esquema": "Production",
+    "tabla": "ProductModelIllustration"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

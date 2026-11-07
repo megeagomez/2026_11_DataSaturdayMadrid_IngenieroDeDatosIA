@@ -1,0 +1,15 @@
+{
+  "objeto": "Production.TransactionHistoryArchive",
+  "activo": true,
+  "claves": [
+    "TransactionID"
+  ],
+  "destino": {
+    "esquema": "Production",
+    "tabla": "TransactionHistoryArchive"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

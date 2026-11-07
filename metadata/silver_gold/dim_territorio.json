@@ -1,0 +1,16 @@
+{
+  "entidad": "dim_territorio",
+  "tipo": "dimension",
+  "descripcion": "Territorios de venta con su país y grupo. Un registro por territorio.",
+  "destino": {
+    "esquema": "dbo",
+    "tabla": "dim_territorio"
+  },
+  "clave": [
+    "IdTerritorio"
+  ],
+  "consulta": "dim_territorio.sql",
+  "borrar_ausentes": true,
+  "depende_de": [],
+  "activo": true
+}

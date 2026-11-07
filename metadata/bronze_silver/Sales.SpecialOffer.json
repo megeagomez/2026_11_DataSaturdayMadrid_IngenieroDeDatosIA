@@ -1,0 +1,15 @@
+{
+  "objeto": "Sales.SpecialOffer",
+  "activo": true,
+  "claves": [
+    "SpecialOfferID"
+  ],
+  "destino": {
+    "esquema": "Sales",
+    "tabla": "SpecialOffer"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

@@ -1,0 +1,15 @@
+{
+  "objeto": "HumanResources.Employee",
+  "activo": true,
+  "claves": [
+    "BusinessEntityID"
+  ],
+  "destino": {
+    "esquema": "HumanResources",
+    "tabla": "Employee"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

@@ -1,0 +1,17 @@
+{
+  "objeto": "Person.PersonPhone",
+  "activo": true,
+  "claves": [
+    "BusinessEntityID",
+    "PhoneNumber",
+    "PhoneNumberTypeID"
+  ],
+  "destino": {
+    "esquema": "Person",
+    "tabla": "PersonPhone"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

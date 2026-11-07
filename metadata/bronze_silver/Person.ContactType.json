@@ -1,0 +1,15 @@
+{
+  "objeto": "Person.ContactType",
+  "activo": true,
+  "claves": [
+    "ContactTypeID"
+  ],
+  "destino": {
+    "esquema": "Person",
+    "tabla": "ContactType"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

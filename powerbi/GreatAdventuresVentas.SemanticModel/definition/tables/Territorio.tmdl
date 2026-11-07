@@ -1,0 +1,57 @@
+/// Territorios comerciales con su país y gran región (dim_territorio). Es el territorio del pedido, no el del revendedor.
+table Territorio
+
+	column IdTerritorio
+		dataType: int64
+		isHidden
+		isAvailableInMdx: false
+		summarizeBy: none
+		sourceColumn: IdTerritorio
+
+	/// Territorio comercial del pedido (Northwest, Canada, France…).
+	column Territorio
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Territorio
+
+	column 'Código de país'
+		dataType: string
+		isHidden
+		summarizeBy: none
+		sourceColumn: CodigoPais
+
+	/// País del territorio comercial.
+	column 'País'
+		dataType: string
+		dataCategory: Country
+		summarizeBy: none
+		sourceColumn: Pais
+
+	/// Gran región: North America, Europe o Pacific.
+	column Grupo
+		dataType: string
+		dataCategory: Continent
+		summarizeBy: none
+		sourceColumn: Grupo
+
+	hierarchy 'Jerarquía de territorio'
+
+		level Grupo
+			column: Grupo
+
+		level 'País'
+			column: 'País'
+
+		level Territorio
+			column: Territorio
+
+	partition Territorio = m
+		mode: import
+		source =
+				let
+					Origen = Sql.Database(#"Servidor SQL gold", #"Base de datos gold"),
+					#"Tabla de gold" = Origen{[Schema = "dbo", Item = "dim_territorio"]}[Data],
+					#"Columnas del modelo" = Table.SelectColumns(#"Tabla de gold", {"IdTerritorio", "Territorio", "CodigoPais", "Pais", "Grupo"}),
+					#"Tipos aplicados" = Table.TransformColumnTypes(#"Columnas del modelo", {{"IdTerritorio", Int64.Type}, {"Territorio", type text}, {"CodigoPais", type text}, {"Pais", type text}, {"Grupo", type text}})
+				in
+					#"Tipos aplicados"

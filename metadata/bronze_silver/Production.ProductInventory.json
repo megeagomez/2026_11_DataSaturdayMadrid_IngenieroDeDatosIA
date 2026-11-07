@@ -1,0 +1,16 @@
+{
+  "objeto": "Production.ProductInventory",
+  "activo": true,
+  "claves": [
+    "ProductID",
+    "LocationID"
+  ],
+  "destino": {
+    "esquema": "Production",
+    "tabla": "ProductInventory"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

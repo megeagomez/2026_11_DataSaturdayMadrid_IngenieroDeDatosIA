@@ -1,0 +1,16 @@
+{
+  "objeto": "Sales.CountryRegionCurrency",
+  "activo": true,
+  "claves": [
+    "CountryRegionCode",
+    "CurrencyCode"
+  ],
+  "destino": {
+    "esquema": "Sales",
+    "tabla": "CountryRegionCurrency"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

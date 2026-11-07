@@ -1,0 +1,15 @@
+{
+  "objeto": "Sales.ShoppingCartItem",
+  "activo": true,
+  "claves": [
+    "ShoppingCartItemID"
+  ],
+  "destino": {
+    "esquema": "Sales",
+    "tabla": "ShoppingCartItem"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

@@ -1,0 +1,15 @@
+{
+  "objeto": "Purchasing.Vendor",
+  "activo": true,
+  "claves": [
+    "BusinessEntityID"
+  ],
+  "destino": {
+    "esquema": "Purchasing",
+    "tabla": "Vendor"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

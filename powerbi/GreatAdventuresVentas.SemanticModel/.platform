@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "SemanticModel",
+    "displayName": "GreatAdventuresVentas"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "8b2e6c4a-1f7d-4e9b-a3c5-6d0f2e8b1c47"
+  }
+}

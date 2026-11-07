@@ -1,0 +1,26 @@
+/// Métodos de pago de los cobros (dim_metodo_pago).
+table 'Método de pago'
+
+	/// Método de pago del cobro: Transferencia, Pagaré, Confirming o Recibo domiciliado.
+	column 'Método de pago'
+		dataType: string
+		isKey
+		summarizeBy: none
+		sourceColumn: MetodoPago
+
+	/// Instrumento financiero del método (por ejemplo, efecto comercial o adeudo directo SEPA).
+	column Instrumento
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Instrumento
+
+	partition 'Método de pago' = m
+		mode: import
+		source =
+				let
+					Origen = Sql.Database(#"Servidor SQL gold", #"Base de datos gold"),
+					#"Tabla de gold" = Origen{[Schema = "dbo", Item = "dim_metodo_pago"]}[Data],
+					#"Columnas del modelo" = Table.SelectColumns(#"Tabla de gold", {"MetodoPago", "Instrumento"}),
+					#"Tipos aplicados" = Table.TransformColumnTypes(#"Columnas del modelo", {{"MetodoPago", type text}, {"Instrumento", type text}})
+				in
+					#"Tipos aplicados"

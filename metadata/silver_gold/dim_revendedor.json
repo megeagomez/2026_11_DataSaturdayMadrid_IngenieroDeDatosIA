@@ -1,0 +1,16 @@
+{
+  "entidad": "dim_revendedor",
+  "tipo": "dimension",
+  "descripcion": "Revendedores (tiendas) con la ubicación de su oficina principal. Un registro por revendedor.",
+  "destino": {
+    "esquema": "dbo",
+    "tabla": "dim_revendedor"
+  },
+  "clave": [
+    "IdRevendedor"
+  ],
+  "consulta": "dim_revendedor.sql",
+  "borrar_ausentes": true,
+  "depende_de": [],
+  "activo": true
+}

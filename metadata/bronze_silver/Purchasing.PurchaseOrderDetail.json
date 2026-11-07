@@ -1,0 +1,16 @@
+{
+  "objeto": "Purchasing.PurchaseOrderDetail",
+  "activo": true,
+  "claves": [
+    "PurchaseOrderID",
+    "PurchaseOrderDetailID"
+  ],
+  "destino": {
+    "esquema": "Purchasing",
+    "tabla": "PurchaseOrderDetail"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

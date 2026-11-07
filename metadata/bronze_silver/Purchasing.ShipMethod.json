@@ -1,0 +1,15 @@
+{
+  "objeto": "Purchasing.ShipMethod",
+  "activo": true,
+  "claves": [
+    "ShipMethodID"
+  ],
+  "destino": {
+    "esquema": "Purchasing",
+    "tabla": "ShipMethod"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

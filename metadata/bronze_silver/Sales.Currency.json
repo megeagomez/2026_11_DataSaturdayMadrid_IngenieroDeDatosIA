@@ -1,0 +1,15 @@
+{
+  "objeto": "Sales.Currency",
+  "activo": true,
+  "claves": [
+    "CurrencyCode"
+  ],
+  "destino": {
+    "esquema": "Sales",
+    "tabla": "Currency"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

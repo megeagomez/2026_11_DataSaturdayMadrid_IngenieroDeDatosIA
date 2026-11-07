@@ -1,0 +1,26 @@
+{
+  "entidad": "fact_cobros",
+  "tipo": "hecho",
+  "descripcion": "Cobros de los pedidos de revendedor: uno por pedido, con su vencimiento, su fecha de pago (vacía si sigue pendiente), su importe y el método de pago. En el modelo semántico NO se relaciona con dim_fecha por ninguna de sus dos fechas: la deuda se calcula contra una fecha de corte.",
+  "destino": {
+    "esquema": "dbo",
+    "tabla": "fact_cobros"
+  },
+  "clave": [
+    "IdCobro"
+  ],
+  "consulta": "fact_cobros.sql",
+  "borrar_ausentes": true,
+  "depende_de": [
+    "dim_metodo_pago"
+  ],
+  "activo": true,
+  "columnas": {
+    "IdCobro": "Identificador del cobro (C-<SalesOrderID>; TEST-001 es la factura de prueba de la charla).",
+    "SalesOrderID": "Pedido de venta cobrado (Sales.SalesOrderHeader.SalesOrderID).",
+    "FechaVencimiento": "Día en que vence el cobro. Desde ese día, si no está pagado, es deuda vencida.",
+    "FechaPago": "Día en que se cobró. Vacía si sigue pendiente. El día del pago ya no se debe.",
+    "Importe": "Importe del cobro (TotalDue del pedido, con portes e impuestos).",
+    "MetodoPago": "Método de pago. Clave hacia dim_metodo_pago."
+  }
+}

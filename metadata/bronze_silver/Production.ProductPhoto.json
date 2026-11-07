@@ -1,0 +1,15 @@
+{
+  "objeto": "Production.ProductPhoto",
+  "activo": true,
+  "claves": [
+    "ProductPhotoID"
+  ],
+  "destino": {
+    "esquema": "Production",
+    "tabla": "ProductPhoto"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

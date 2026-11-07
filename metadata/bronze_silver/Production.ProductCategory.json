@@ -1,0 +1,15 @@
+{
+  "objeto": "Production.ProductCategory",
+  "activo": true,
+  "claves": [
+    "ProductCategoryID"
+  ],
+  "destino": {
+    "esquema": "Production",
+    "tabla": "ProductCategory"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

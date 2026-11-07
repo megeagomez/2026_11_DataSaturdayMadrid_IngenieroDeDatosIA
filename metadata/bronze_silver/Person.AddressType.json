@@ -1,0 +1,15 @@
+{
+  "objeto": "Person.AddressType",
+  "activo": true,
+  "claves": [
+    "AddressTypeID"
+  ],
+  "destino": {
+    "esquema": "Person",
+    "tabla": "AddressType"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

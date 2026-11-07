@@ -1,0 +1,15 @@
+{
+  "objeto": "Sales.Customer",
+  "activo": true,
+  "claves": [
+    "CustomerID"
+  ],
+  "destino": {
+    "esquema": "Sales",
+    "tabla": "Customer"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

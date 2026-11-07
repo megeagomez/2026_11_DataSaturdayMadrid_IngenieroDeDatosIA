@@ -1,0 +1,15 @@
+{
+  "objeto": "Person.BusinessEntity",
+  "activo": true,
+  "claves": [
+    "BusinessEntityID"
+  ],
+  "destino": {
+    "esquema": "Person",
+    "tabla": "BusinessEntity"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

@@ -1,0 +1,16 @@
+{
+  "objeto": "Production.ProductDocument",
+  "activo": true,
+  "claves": [
+    "ProductID",
+    "DocumentNode"
+  ],
+  "destino": {
+    "esquema": "Production",
+    "tabla": "ProductDocument"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

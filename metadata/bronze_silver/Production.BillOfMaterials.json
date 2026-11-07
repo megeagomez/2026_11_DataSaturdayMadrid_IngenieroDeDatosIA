@@ -1,0 +1,15 @@
+{
+  "objeto": "Production.BillOfMaterials",
+  "activo": true,
+  "claves": [
+    "BillOfMaterialsID"
+  ],
+  "destino": {
+    "esquema": "Production",
+    "tabla": "BillOfMaterials"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

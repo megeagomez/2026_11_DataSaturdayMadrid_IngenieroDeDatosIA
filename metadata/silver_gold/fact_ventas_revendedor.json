@@ -1,0 +1,24 @@
+{
+  "entidad": "fact_ventas_revendedor",
+  "tipo": "hecho",
+  "descripcion": "Ventas a revendedores (OnlineOrderFlag = 0) a grano de línea de pedido. Portes e impuestos de cabecera repartidos por el peso del importe de la línea; el resto de redondeo va a la última línea, así que por pedido cuadran al céntimo con la cabecera.",
+  "destino": {
+    "esquema": "dbo",
+    "tabla": "fact_ventas_revendedor"
+  },
+  "clave": [
+    "IdPedido",
+    "IdLineaPedido"
+  ],
+  "consulta": "fact_ventas_revendedor.sql",
+  "borrar_ausentes": true,
+  "depende_de": [
+    "dim_fecha",
+    "dim_producto",
+    "dim_promocion",
+    "dim_revendedor",
+    "dim_territorio",
+    "dim_vendedor"
+  ],
+  "activo": true
+}

@@ -1,0 +1,16 @@
+{
+  "objeto": "Person.EmailAddress",
+  "activo": true,
+  "claves": [
+    "BusinessEntityID",
+    "EmailAddressID"
+  ],
+  "destino": {
+    "esquema": "Person",
+    "tabla": "EmailAddress"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

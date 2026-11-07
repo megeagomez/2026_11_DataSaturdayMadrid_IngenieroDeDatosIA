@@ -1,0 +1,16 @@
+{
+  "entidad": "dim_producto",
+  "tipo": "dimension",
+  "descripcion": "Productos con su subcategoría y categoría. Un registro por producto.",
+  "destino": { "esquema": "dbo", "tabla": "dim_producto" },
+  "clave": ["IdProducto"],
+  "consulta": "dim_producto.sql",
+  "borrar_ausentes": true,
+  "depende_de": [],
+  "activo": true,
+  "columnas": {
+    "IdProducto": "Identificador del producto en origen (Production.Product.ProductID)",
+    "Producto": "Nombre comercial del producto",
+    "Categoria": "Categoría; 'Sin categoría' si el producto no tiene subcategoría"
+  }
+}

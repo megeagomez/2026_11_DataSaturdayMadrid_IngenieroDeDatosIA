@@ -1,0 +1,15 @@
+{
+  "objeto": "Production.ScrapReason",
+  "activo": true,
+  "claves": [
+    "ScrapReasonID"
+  ],
+  "destino": {
+    "esquema": "Production",
+    "tabla": "ScrapReason"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}

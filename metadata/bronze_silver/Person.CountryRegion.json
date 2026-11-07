@@ -1,0 +1,15 @@
+{
+  "objeto": "Person.CountryRegion",
+  "activo": true,
+  "claves": [
+    "CountryRegionCode"
+  ],
+  "destino": {
+    "esquema": "Person",
+    "tabla": "CountryRegion"
+  },
+  "operaciones_borrado": [
+    "D"
+  ],
+  "notas": ""
+}
