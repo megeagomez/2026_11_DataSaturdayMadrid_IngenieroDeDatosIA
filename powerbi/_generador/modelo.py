@@ -15,7 +15,7 @@ m = Modelo(
     "GreatAdventuresVentas",
     raiz=os.path.join(RAIZ_PROYECTO, "powerbi"),
     modo="import",
-    servidor_sql="j37vtja52ffuhjxwdfrkhefhse-i7pgzede3bbuzolhyj5lbpqp2e.datawarehouse.fabric.microsoft.com",
+    servidor_sql="tu-endpoint-sql.datawarehouse.fabric.microsoft.com",
     base_datos="gold",
 )
 

@@ -1,6 +1,6 @@
 # Tablas a subir a Bronze (GreatAdventures)
 
-- **Origen:** `a01p0717` / `AdventureWorks2022` (OLTP, no DW).
+- **Origen:** `TU-SERVIDOR-SQL` / `AdventureWorks2022` (OLTP, no DW).
 - **Destino:** lakehouse `bronze`, `Files/Source/<Objeto>/` en parquet con `.metadata`.
 - **Alcance:** las 68 tablas de los esquemas de negocio. Se excluyen las 3 de `dbo` (`AWBuildVersion`, `DatabaseLog`, `ErrorLog`).
 - **Columna "Demo 2":** ✔ marca lo mínimo que necesita la medallion de ventas a reseller.

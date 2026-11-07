@@ -27,7 +27,7 @@ Qué crea `crear_infra.ps1 -Proyecto <Proyecto>`:
 
 - **Capacidad:** la primera capacidad activa cuyo nombre empiece por `Trial-`. Para usar otra, pasa `-Capacidad "<nombre o id>"`. Si hay varias que coincidan y no está claro cuál usar, pregunta.
 - **Salida:** una tabla con cada elemento, si se ha creado o ya existía, su id y la ruta `abfss://` de cada lakehouse. Enséñala tal cual.
-- **Tenant:** `a459ff4e-d11d-434b-a6f6-1962a390a791`, usuario `fabric-user-05@midatalab.com`. Si `az account show` muestra otro tenant, avisa antes de crear nada.
+- **Tenant:** `00000000-0000-0000-0000-000000000000`, usuario `usuario@tu-tenant.onmicrosoft.com`. Si `az account show` muestra otro tenant, avisa antes de crear nada.
 - **No borres nunca** workspaces ni lakehouses, ni siquiera para "empezar de cero", salvo que te lo pidan de forma explícita.
 - Si el script falla, enseña el error y para. No lo sustituyas por llamadas sueltas a `az rest`. Si hay que cambiar el script, propón el cambio en `infra/crear_infra.ps1` para que la siguiente vez siga funcionando.
 
@@ -49,4 +49,4 @@ Las skills de este proyecto están en `skills/<nombre>/SKILL.md`. No se cargan s
 - `kanban/preparar_tablero.py`: monta en Rumbo el tablero de la demo final (lo hecho, con evidencias y aprobaciones, y 5 tarjetas pendientes). Si el tablero ya existe no toca nada; `--archivar-anterior` lo archiva (no lo borra) y crea uno nuevo.
 - `powerbi/`: PBIP del modelo y el informe `GreatAdventuresVentas` (generado: no se edita a mano; ver la skill `modelos-powerbi`).
 - `build_deck.py`: regenera el HTML de la presentación (`python build_deck.py`). No edites el HTML a mano.
-- `data/generar_cobros.py`: genera `data/cobros.csv` desde **AdventureWorks2022 (OLTP)** en `a01p0717`. No uses AdventureWorksDW2022 como origen.
+- `data/generar_cobros.py`: genera `data/cobros.csv` desde **AdventureWorks2022 (OLTP)** en `TU-SERVIDOR-SQL`. No uses AdventureWorksDW2022 como origen.

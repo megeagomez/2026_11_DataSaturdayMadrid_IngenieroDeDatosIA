@@ -18,7 +18,7 @@ import numpy as np
 import pandas as pd
 import pyodbc
 
-SERVER = sys.argv[1] if len(sys.argv) > 1 else "a01p0717"
+SERVER = sys.argv[1] if len(sys.argv) > 1 else "TU-SERVIDOR-SQL"
 DATABASE = sys.argv[2] if len(sys.argv) > 2 else "AdventureWorks2022"
 OUT = Path(__file__).resolve().parent
 SEED = 42

@@ -1,0 +1,7 @@
+# Anonimiza tenant, usuario, ids de Fabric y servidores al hacer git add (ver tools/anonimizar.py)
+*.md     filter=anonimizar
+*.py     filter=anonimizar
+*.tmdl   filter=anonimizar
+*.ps1    filter=anonimizar
+*.json   filter=anonimizar
+*.ipynb  filter=anonimizar

@@ -43,7 +43,7 @@ TEXTOS = {
 |---|---|---|
 | Workspace de control | GreatAdventuresControl (87e04ac8-4f9f-4290-952a-8f28b3717bbd) | creado |
 | Lakehouse control (log y telemetría) | GreatAdventuresControl | creado |
-| Workspace de datos | GreatAdventures (906cde47-d864-4c43-b967-c27ab0be0fd1) | creado |
+| Workspace de datos | GreatAdventures (22222222-2222-2222-2222-222222222222) | creado |
 | Lakehouse bronze (con esquemas) | GreatAdventures (8eb9c541-ddb5-4d50-b917-791200af6337) | creado |
 | Lakehouse silver (con esquemas) | GreatAdventures | creado |
 | Lakehouse gold (con esquemas) | GreatAdventures (71bbcc2e-22f3-43d5-814e-692174493a9f) | creado |
@@ -52,7 +52,7 @@ Segunda ejecución: todo "ya existía" (el script es idempotente y nunca borra).
 """,
     "bronze.md": """# Bronze: AdventureWorks2022 (OLTP) con pyuploader
 
-- Origen: a01p0717 / AdventureWorks2022 (OLTP, no el DW).
+- Origen: TU-SERVIDOR-SQL / AdventureWorks2022 (OLTP, no el DW).
 - Destino: lakehouse bronze, Files/Source/<Objeto>/*.parquet con su .metadata.
 - 68 tablas de negocio + cobros.csv (Files/Source/cobros).
 - Conversiones en la consulta de origen: hierarchyid -> ToString(), geography -> STAsText(), xml -> nvarchar(max).
@@ -87,7 +87,7 @@ Filas de ventas cargadas en el modelo: 60.919.
 """,
     "cobros_datos.md": """# Datos de cobros (data/generar_cobros.py)
 
-- Origen: AdventureWorks2022 (OLTP) en a01p0717. Nunca AdventureWorksDW2022.
+- Origen: AdventureWorks2022 (OLTP) en TU-SERVIDOR-SQL. Nunca AdventureWorksDW2022.
 - Un cobro por pedido de revendedor: vencimiento según condiciones de pago, fecha de pago (vacía = pendiente), método de pago.
 - Fichero: data/cobros.csv -> bronze Files/Source/cobros/cobros.csv.
 - Resultado esperado de la deuda a cada fin de mes calculado aparte en Python: data/cobros_esperado_fin_de_mes.csv.
@@ -123,7 +123,7 @@ Ensayo (procesar_modelos=false): bronze_silver 69 OK · silver_gold 10 OK.
 """,
     "despliegue.md": """# Despliegue en GreatAdventures
 
-- Modelo GreatAdventuresVentas: e19b008b-6fe1-4ec5-887f-fda5c572b256
+- Modelo GreatAdventuresVentas: 11111111-1111-1111-1111-111111111111
 - Informe GreatAdventuresVentas: 4b0c8e29-b8e4-4534-ac9e-13fbca911078 (conexión byConnection al modelo)
 - skills/modelos-powerbi/scripts/desplegar_powerbi.py (crea o actualiza, nunca borra).
 """,

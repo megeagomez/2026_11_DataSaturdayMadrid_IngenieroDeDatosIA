@@ -29,7 +29,7 @@ DataSaturday Madrid 2026 · 57 min + 3 de preguntas · Diapositivas: `El-Ingenie
   - **PC1:** `bronze` cargado.
   - **PC2:** `silver` y `gold` de ventas.
   - **PC3:** `fact_cobros`, `dim_metodo_pago` y el modelo desplegado.
-- [ ] **Conexión del modelo en Fabric (una sola vez).** `GreatAdventuresVentas` es Import contra el endpoint SQL de gold, y el servicio no lo refresca con la conexión por defecto. Ve a la configuración del modelo semántico → *Conexiones de puerta de enlace y en la nube* → crea una conexión en la nube (SQL Server, servidor `j37vtja52ffuhjxwdfrkhefhse-i7pgzede3bbuzolhyj5lbpqp2e.datawarehouse.fabric.microsoft.com`, base de datos `gold`, OAuth2) y asígnala. Comprueba que un refresco termina bien. Sin esto, la demo 4 no refresca.
+- [ ] **Conexión del modelo en Fabric (una sola vez).** `GreatAdventuresVentas` es Import contra el endpoint SQL de gold, y el servicio no lo refresca con la conexión por defecto. Ve a la configuración del modelo semántico → *Conexiones de puerta de enlace y en la nube* → crea una conexión en la nube (SQL Server, servidor `tu-endpoint-sql.datawarehouse.fabric.microsoft.com`, base de datos `gold`, OAuth2) y asígnala. Comprueba que un refresco termina bien. Sin esto, la demo 4 no refresca.
 - [ ] **Ensayar el prompt de rescate** y guardar su resultado como respaldo: copia `powerbi/` a `powerbi_respaldo_cobros/` con la parte de cobros ya generada y validada. Después devuelve `powerbi/` a la versión sin cobros: en directo se genera de nuevo.
 - [ ] **Vídeo grabado** de cada demo, de 1 a 2 minutos cada uno y a velocidad x1,5. Es el plan B si falla la red.
 - [ ] **CSV de cobros** generado y validado (sección 0.1).
@@ -41,7 +41,7 @@ DataSaturday Madrid 2026 · 57 min + 3 de preguntas · Diapositivas: `El-Ingenie
 ### El día de la charla (1 hora antes)
 - [ ] La capacidad de Fabric está encendida y asignada a los workspaces.
 - [ ] Una sesión de Spark está caliente: abre un notebook en `GreatAdventures` y ejecuta `spark.range(1).count()`. La capacidad Trial admite **una sola sesión de Spark**: ciérrala antes de lanzar orquestadores.
-- [ ] Sesiones iniciadas: `az login --allow-no-subscriptions` (el tenant no tiene suscripciones) y comprobar con `az account show` que el tenant es `a459ff4e-…`. Abrir el portal de Fabric y Claude Code en la carpeta de la charla, para que lea `AGENTS.md` y las skills `notebooks-medallion` y `modelos-powerbi`.
+- [ ] Sesiones iniciadas: `az login --allow-no-subscriptions` (el tenant no tiene suscripciones) y comprobar con `az account show` que el tenant es `00000000-…`. Abrir el portal de Fabric y Claude Code en la carpeta de la charla, para que lea `AGENTS.md` y las skills `notebooks-medallion` y `modelos-powerbi`.
 - [ ] Power BI Desktop instalado y cerrado. Cerrar cualquier otro `.pbip` abierto: la skill lo abre ella. Para la demo 5 tiene que quedar **abierto con `powerbi/GreatAdventuresVentas.pbip`** (las capturas de las tarjetas salen de ahí).
 - [ ] **Rumbo arrancado** (`start_app.bat` en `D:\Python apps\KambanIncidenciasYproyectosClaude`): la web en http://127.0.0.1:5003 (*Miguel Admin*) y `data_service` en el 5001. Comprobar con `python skills/kanban-rumbo/scripts/rumbo.py tablero` que hay 5 tarjetas en *Listo para hacer*. Pestaña del navegador abierta en el tablero.
 - [ ] pyuploader configurado y probado con una tabla pequeña. Bórrala después.
@@ -51,7 +51,7 @@ DataSaturday Madrid 2026 · 57 min + 3 de preguntas · Diapositivas: `El-Ingenie
 
 ### 0.1 CSV de cobros — ✅ generado en `data/` y cargado en el ensayo
 
-Se genera con `python data/generar_cobros.py` (por defecto lee `a01p0717` / `AdventureWorks2022`). Usa la semilla 42, así que siempre sale el mismo fichero. Lee `Sales.SalesOrderHeader` con `OnlineOrderFlag = 0` y produce **un cobro por pedido de revendedor**: 3.806 filas, verificadas contra la OLTP sin pedidos sobrantes ni faltantes.
+Se genera con `python data/generar_cobros.py` (por defecto lee `TU-SERVIDOR-SQL` / `AdventureWorks2022`). Usa la semilla 42, así que siempre sale el mismo fichero. Lee `Sales.SalesOrderHeader` con `OnlineOrderFlag = 0` y produce **un cobro por pedido de revendedor**: 3.806 filas, verificadas contra la OLTP sin pedidos sobrantes ni faltantes.
 
 > **No uses AdventureWorksDW2022 como origen:** tiene las fechas desplazadas unos 5 meses y otros importes, así que los cobros no cuadrarían con los pedidos de la OLTP.
 
@@ -337,9 +337,9 @@ La curva sale de `data/cobros_esperado_fin_de_mes.csv`, calculada en Python sin 
 **Refrescar solo el modelo** (en directo es más rápido que lanzar `orq_principal`, que tarda unos 8 minutos con las capas):
 
 ```powershell
-$ds = "e19b008b-6fe1-4ec5-887f-fda5c572b256"   # GreatAdventuresVentas en GreatAdventures
+$ds = "11111111-1111-1111-1111-111111111111"   # GreatAdventuresVentas en GreatAdventures
 az rest --method post --resource https://analysis.windows.net/powerbi/api `
-  --url "https://api.powerbi.com/v1.0/myorg/groups/906cde47-d864-4c43-b967-c27ab0be0fd1/datasets/$ds/refreshes" `
+  --url "https://api.powerbi.com/v1.0/myorg/groups/22222222-2222-2222-2222-222222222222/datasets/$ds/refreshes" `
   --body '{"type":"full"}'
 ```
 

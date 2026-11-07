@@ -9,3 +9,5 @@ __pycache__/
 *.pyc
 .env
 config.yaml
+# Valores reales del entorno (los usa tools/anonimizar.py; nunca se suben)
+.anonimizar.local.json

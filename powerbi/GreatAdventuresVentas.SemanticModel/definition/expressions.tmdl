@@ -1,5 +1,5 @@
 /// Endpoint SQL del workspace (el mismo para todos sus lakehouses).
-expression 'Servidor SQL gold' = "j37vtja52ffuhjxwdfrkhefhse-i7pgzede3bbuzolhyj5lbpqp2e.datawarehouse.fabric.microsoft.com" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+expression 'Servidor SQL gold' = "tu-endpoint-sql.datawarehouse.fabric.microsoft.com" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
 
 /// Lakehouse del que se importa el modelo.
 expression 'Base de datos gold' = "gold" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
