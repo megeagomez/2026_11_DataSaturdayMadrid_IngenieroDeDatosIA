@@ -55,5 +55,7 @@ Sacar una tarjeta de *Aceptación* hacia atrás exige motivo: así queda escrito
 - No muevas nada a **Hecho** ni apruebes nada: aceptar es de una persona.
 - Sin captura o sin resultado de la validación, la tarjeta no va a Aceptación.
 - No despliegues a Fabric desde una tarjeta salvo que el criterio de aceptación lo pida.
+- No marques como leídas todas las notificaciones de un usuario (`/users/<id>/notifications/read-all`): marca también las de sus otros tableros y no se puede deshacer.
+- No escribas la contraseña de Rumbo en ningún fichero: el cliente entra con la clave de servicio del `config.yaml` de Rumbo.
 - No crees tarjetas, usuarios ni tableros salvo que te lo pidan. El tablero de la demo lo monta `kanban/preparar_tablero.py`.
 - Si Rumbo no responde (puertos 5001 y 5003), dilo y para: se arranca con `start_app.bat` en `D:\Python apps\KambanIncidenciasYproyectosClaude`.

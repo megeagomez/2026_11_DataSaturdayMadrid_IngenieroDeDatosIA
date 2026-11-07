@@ -363,22 +363,6 @@ m.tabla("Promoción", "Promociones y ofertas especiales (dim_promocion). El tipo
 _PENDIENTE = "OR(ISBLANK('Cobros'[FechaPago]), 'Cobros'[FechaPago] > _corte)"
 
 
-def _tramo(nombre, desde, hasta, desc):
-    """Deuda vencida pendiente con días vencida al corte (corte - vencimiento) entre desde y hasta."""
-    filtros = [f"'Cobros'[FechaVencimiento] <= _corte - {desde}"]
-    if hasta is not None:
-        filtros.append(f"'Cobros'[FechaVencimiento] >= _corte - {hasta}")
-    filtros.append(_PENDIENTE)
-    cuerpo = ",\n        ".join(["SUM('Cobros'[Importe])"] + filtros)
-    return med(nombre, f"""
-VAR _corte = MAX('Fecha'[Fecha])
-RETURN
-    CALCULATE(
-        {cuerpo}
-    )
-""", EUR, "Cobros y deuda\\Antigüedad", desc)
-
-
 mco = [
     med("Deuda vencida pendiente", f"""
 VAR _corte = MAX('Fecha'[Fecha])
@@ -421,10 +405,6 @@ RETURN
     )
 """, EUR, "Cobros y deuda",
         "Deuda vencida más la que aún no ha vencido, sin pagar a la fecha de corte. Como no hay fecha de factura, se consideran emitidas las facturas que vencen como mucho 90 días después del corte (el plazo máximo de pago). Es una aproximación."),
-    _tramo("Deuda vencida 0-30 días", 0, 30, "Deuda vencida pendiente que lleva de 0 a 30 días vencida a la fecha de corte (días = corte - vencimiento; el día del vencimiento es el día 0)."),
-    _tramo("Deuda vencida 31-60 días", 31, 60, "Deuda vencida pendiente que lleva de 31 a 60 días vencida a la fecha de corte."),
-    _tramo("Deuda vencida 61-90 días", 61, 90, "Deuda vencida pendiente que lleva de 61 a 90 días vencida a la fecha de corte."),
-    _tramo("Deuda vencida más de 90 días", 91, None, "Deuda vencida pendiente que lleva más de 90 días vencida a la fecha de corte."),
 ]
 cco = [
     col("IdCobro", "IdCobro", "string", oculta=True, mdx=False, desc="Identificador del cobro (C-<pedido>; TEST-001 es la factura de prueba)."),
@@ -471,7 +451,7 @@ COPILOT = """# Instrucciones para Copilot · GreatAdventures Ventas
 - "Cumplimiento", "attainment" = **% Cumplimiento de cuota**.
 - "Markdown", "descuento" = **% Descuento**.
 - "Año anterior", "YoY" = medidas con sufijo **AA** y **% Crecimiento**.
-- "Deuda", "impagados", "vencido", "morosidad" = **Deuda vencida pendiente**. "Cobrado", "cobros del mes" = **Importe cobrado**. "Antigüedad de la deuda", "aging" = medidas **Deuda vencida 0-30 / 31-60 / 61-90 / más de 90 días**.
+- "Deuda", "impagados", "vencido", "morosidad" = **Deuda vencida pendiente**. "Cobrado", "cobros del mes" = **Importe cobrado**.
 
 ## Reglas
 - Las cuotas son trimestrales: analiza **Cuota** y **% Cumplimiento de cuota** por trimestre o por año.

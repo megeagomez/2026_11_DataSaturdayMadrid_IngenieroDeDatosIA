@@ -13,7 +13,7 @@
 - "Cumplimiento", "attainment" = **% Cumplimiento de cuota**.
 - "Markdown", "descuento" = **% Descuento**.
 - "Año anterior", "YoY" = medidas con sufijo **AA** y **% Crecimiento**.
-- "Deuda", "impagados", "vencido", "morosidad" = **Deuda vencida pendiente**. "Cobrado", "cobros del mes" = **Importe cobrado**. "Antigüedad de la deuda", "aging" = medidas **Deuda vencida 0-30 / 31-60 / 61-90 / más de 90 días**.
+- "Deuda", "impagados", "vencido", "morosidad" = **Deuda vencida pendiente**. "Cobrado", "cobros del mes" = **Importe cobrado**.
 
 ## Reglas
 - Las cuotas son trimestrales: analiza **Cuota** y **% Cumplimiento de cuota** por trimestre o por año.

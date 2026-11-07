@@ -158,10 +158,10 @@ En el modelo GreatAdventuresVentas añade la parte de cobros que ya está en gol
 1. Tablas Cobros (fact_cobros) y Método de pago (dim_metodo_pago). Cobros NO se relaciona con Fecha
    por ninguna de sus dos fechas; sí con Método de pago.
 2. Medidas, con las reglas de references/negocio.md: Deuda vencida pendiente, Facturas vencidas
-   pendientes, Importe cobrado, Deuda pendiente total y la antigüedad de la deuda vencida por tramos
-   (0-30, 31-60, 61-90 y más de 90 días al corte). Si una definición no está en negocio.md, pregúntame.
+   pendientes, Importe cobrado y Deuda pendiente total. Si una definición no está en negocio.md,
+   pregúntame.
 3. En el informe, una página "Cobros y deuda": evolución de la deuda vencida por fin de mes,
-   deuda por método de pago y antigüedad. Mismo diseño que el resto.
+   deuda por método de pago y lo cobrado por mes. Mismo diseño que el resto.
 4. Valida contra data/cobros_esperado_fin_de_mes.csv (37 fines de mes al céntimo) y la factura
    TEST-001 (39 días). Procesa en local y enséñame las capturas.
 5. No despliegues nada hasta que te lo diga.
@@ -393,7 +393,7 @@ Al terminar, en Rumbo, la tarjeta *Modelo e informe: cobros y evolución de la d
 
 | Tarjeta | Pide | Qué debería hacer el agente |
 |---|---|---|
-| Resumen: los territorios salen girados y «United Kingdom» cortado | Lucía | Pasar *Ventas netas por territorio* a barras horizontales (`clusteredBarChart`), captura, *Aceptación* |
+| Resumen: los territorios salen girados y «United Kingdom» cortado | Lucía | En *Ventas netas por territorio*, letra del eje de 8 y sin eje de valores: caben los 10 en horizontal y «United Kingdom» se parte en dos líneas. (En el ensayo, las barras horizontales no cabían: solo 8 territorios y barra de desplazamiento.) Captura, *Aceptación* |
 | Resumen: «Accessories» aparece con $0 mill. | Lucía | Etiquetas de *Ventas netas por categoría* con decimales o en miles (`labels.labelPrecision` / `labelDisplayUnits`), captura, *Aceptación* |
 | Resumen: la tarjeta «Pedidos» dice «2 mil» | Lucía | Tarjeta *Pedidos* sin unidades (`value.labelDisplayUnits = 1`), captura, *Aceptación* |
 | Deuda: antigüedad por tramos (0–30, 31–60, 61–90, >90) | Javier | **No construir.** Opciones (columna en gold fija a la fecha de carga, frente a tabla de tramos desconectada y medida en el modelo, dinámica con la fecha de corte) y recomendación; asignar a Miguel; *Pendiente de decisión* |

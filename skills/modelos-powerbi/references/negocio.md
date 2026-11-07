@@ -94,9 +94,8 @@ measure 'Deuda vencida pendiente' = ```
 | Facturas vencidas pendientes | Mismo patrón que la deuda vencida, con `COUNTROWS('Cobros')` |
 | Importe cobrado | **Flujo:** cobros cuya `FechaPago` cae dentro del contexto de fecha (de `MIN` a `MAX` de `'Fecha'[Fecha]`) |
 | Deuda pendiente total | Vencida y por vencer, sin pagar al corte. Como `fact_cobros` no tiene fecha de factura, se consideran emitidas las que vencen **como mucho 90 días después del corte** (plazo máximo de pago). Es una aproximación |
-| Deuda vencida 0-30 / 31-60 / 61-90 / más de 90 días | Antigüedad = **corte − FechaVencimiento** (el día del vencimiento es el día 0). Cada tramo filtra `FechaVencimiento` entre `_corte - hasta` y `_corte - desde`; los cuatro suman la deuda vencida pendiente. TEST-001 al 9/5/2013 lleva 38 días: tramo 31-60 |
 
-- Ojo: una medida de tramo **no** puede ser `CALCULATE([Deuda vencida pendiente], 'Cobros'[FechaVencimiento] >= ...)`: el filtro interno de la medida sobre `FechaVencimiento` sustituye al externo. Cada tramo lleva sus dos límites.
+- **Antigüedad de la deuda por tramos (0–30, 31–60, 61–90, >90 días): pendiente de decisión técnica** (tarjeta #187 de Rumbo: dónde se calcula el tramo). No la construyas hasta que esté decidida.
 - Página «Cobros y deuda»: solo segmentador de Año (Región y Categoría no filtran los cobros).
 - Para la deuda por revendedor hace falta llevar `StoreID` a `fact_cobros` en gold: está en silver, pero no se pidió en la lista de columnas. Pregunta antes de añadirlo.
 

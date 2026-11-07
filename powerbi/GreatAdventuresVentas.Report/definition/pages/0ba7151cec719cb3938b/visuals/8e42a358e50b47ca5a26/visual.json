@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
   "name": "8e42a358e50b47ca5a26",
   "position": {
-    "x": 523,
+    "x": 648,
     "y": 104,
     "z": 75000,
     "height": 80,
-    "width": 234,
+    "width": 296,
     "tabOrder": 75000
   },
   "visual": {
@@ -23,11 +23,11 @@
                       "Entity": "Cobros"
                     }
                   },
-                  "Property": "Deuda vencida más de 90 días"
+                  "Property": "Deuda pendiente total"
                 }
               },
-              "queryRef": "Cobros.Deuda vencida más de 90 días",
-              "nativeQueryRef": "Deuda vencida más de 90 días"
+              "queryRef": "Cobros.Deuda pendiente total",
+              "nativeQueryRef": "Deuda pendiente total"
             }
           ]
         }
@@ -74,7 +74,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Vencida hace más de 90 días'"
+                  "Value": "'Deuda pendiente total'"
                 }
               }
             },

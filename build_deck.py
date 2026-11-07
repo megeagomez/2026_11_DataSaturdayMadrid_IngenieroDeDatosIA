@@ -225,10 +225,10 @@ En el modelo GreatAdventuresVentas añade la parte de cobros que ya está en gol
 1. Tablas Cobros (fact_cobros) y Método de pago (dim_metodo_pago). Cobros NO se relaciona con Fecha
    por ninguna de sus dos fechas; sí con Método de pago.
 2. Medidas, con las reglas de references/negocio.md: Deuda vencida pendiente, Facturas vencidas
-   pendientes, Importe cobrado, Deuda pendiente total y la antigüedad de la deuda vencida por tramos
-   (0-30, 31-60, 61-90 y más de 90 días al corte). Si una definición no está en negocio.md, pregúntame.
+   pendientes, Importe cobrado y Deuda pendiente total. Si una definición no está en negocio.md,
+   pregúntame.
 3. En el informe, una página "Cobros y deuda": evolución de la deuda vencida por fin de mes,
-   deuda por método de pago y antigüedad. Mismo diseño que el resto.
+   deuda por método de pago y lo cobrado por mes. Mismo diseño que el resto.
 4. Valida contra data/cobros_esperado_fin_de_mes.csv (37 fines de mes al céntimo) y la factura
    TEST-001 (39 días). Procesa en local y enséñame las capturas.
 5. No despliegues nada hasta que te lo diga."""

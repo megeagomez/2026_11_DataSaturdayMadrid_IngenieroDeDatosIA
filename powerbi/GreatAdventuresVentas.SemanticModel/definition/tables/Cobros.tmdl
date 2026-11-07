@@ -54,61 +54,6 @@ table Cobros
 		formatString: \$#,##0
 		displayFolder: Cobros y deuda
 
-	/// Deuda vencida pendiente que lleva de 0 a 30 días vencida a la fecha de corte (días = corte - vencimiento; el día del vencimiento es el día 0).
-	measure 'Deuda vencida 0-30 días' = ```
-			VAR _corte = MAX('Fecha'[Fecha])
-			RETURN
-				CALCULATE(
-					SUM('Cobros'[Importe]),
-					'Cobros'[FechaVencimiento] <= _corte - 0,
-					'Cobros'[FechaVencimiento] >= _corte - 30,
-					OR(ISBLANK('Cobros'[FechaPago]), 'Cobros'[FechaPago] > _corte)
-				)
-			```
-		formatString: \$#,##0
-		displayFolder: Cobros y deuda\Antigüedad
-
-	/// Deuda vencida pendiente que lleva de 31 a 60 días vencida a la fecha de corte.
-	measure 'Deuda vencida 31-60 días' = ```
-			VAR _corte = MAX('Fecha'[Fecha])
-			RETURN
-				CALCULATE(
-					SUM('Cobros'[Importe]),
-					'Cobros'[FechaVencimiento] <= _corte - 31,
-					'Cobros'[FechaVencimiento] >= _corte - 60,
-					OR(ISBLANK('Cobros'[FechaPago]), 'Cobros'[FechaPago] > _corte)
-				)
-			```
-		formatString: \$#,##0
-		displayFolder: Cobros y deuda\Antigüedad
-
-	/// Deuda vencida pendiente que lleva de 61 a 90 días vencida a la fecha de corte.
-	measure 'Deuda vencida 61-90 días' = ```
-			VAR _corte = MAX('Fecha'[Fecha])
-			RETURN
-				CALCULATE(
-					SUM('Cobros'[Importe]),
-					'Cobros'[FechaVencimiento] <= _corte - 61,
-					'Cobros'[FechaVencimiento] >= _corte - 90,
-					OR(ISBLANK('Cobros'[FechaPago]), 'Cobros'[FechaPago] > _corte)
-				)
-			```
-		formatString: \$#,##0
-		displayFolder: Cobros y deuda\Antigüedad
-
-	/// Deuda vencida pendiente que lleva más de 90 días vencida a la fecha de corte.
-	measure 'Deuda vencida más de 90 días' = ```
-			VAR _corte = MAX('Fecha'[Fecha])
-			RETURN
-				CALCULATE(
-					SUM('Cobros'[Importe]),
-					'Cobros'[FechaVencimiento] <= _corte - 91,
-					OR(ISBLANK('Cobros'[FechaPago]), 'Cobros'[FechaPago] > _corte)
-				)
-			```
-		formatString: \$#,##0
-		displayFolder: Cobros y deuda\Antigüedad
-
 	/// Identificador del cobro (C-<pedido>; TEST-001 es la factura de prueba).
 	column IdCobro
 		dataType: string

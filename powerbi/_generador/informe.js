@@ -103,7 +103,7 @@ inf.pagina('comerciales', 'Comerciales y territorios', 'COMERCIALES Y TERRITORIO
 inf.pagina('cobros', 'Cobros y deuda', 'COBROS Y DEUDA', '¿Cuánto nos deben, desde cuándo y cómo nos pagan?', add => {
   inf.kpis(add, [
     ['Deuda vencida pendiente', 'Deuda vencida al cierre', C.oro, 'Cobros'], ['Facturas vencidas pendientes', 'Facturas vencidas', C.azul, 'Cobros'],
-    ['Deuda vencida más de 90 días', 'Vencida hace más de 90 días', C.azul, 'Cobros'], ['Deuda pendiente total', 'Deuda pendiente total', C.azul, 'Cobros'],
+    ['Deuda pendiente total', 'Deuda pendiente total', C.azul, 'Cobros'],
     ['Importe cobrado', 'Cobrado en el periodo', C.azul, 'Cobros'],
   ]);
   add('evolucion', [24, 184, 800, 268], multiserie('lineChart', Col('Fecha', 'Fin de mes'),
@@ -113,10 +113,8 @@ inf.pagina('cobros', 'Cobros y deuda', 'COBROS Y DEUDA', '¿Cuánto nos deben, d
     'Deuda vencida por método de pago', 'Al último día del periodo', { tabla: 'Cobros' });
   metodo.objects.categoryAxis = [{ properties: { maxMarginFactor: L('35L') } }];   // «Recibo domiciliado» sin cortar
   add('metodo', [840, 184, 416, 268], metodo);
-  add('antiguedad', [24, 468, 800, 236], multiserie('columnChart', Col('Fecha', 'Fin de mes'),
-    [['Cobros', 'Deuda vencida 0-30 días', '#7FD3E3'], ['Cobros', 'Deuda vencida 31-60 días', C.cian],
-     ['Cobros', 'Deuda vencida 61-90 días', C.azul], ['Cobros', 'Deuda vencida más de 90 días', C.rojo]],
-    'Antigüedad de la deuda vencida a fin de mes', 'Días vencida al cierre de cada mes'));
+  add('facturas', [24, 468, 800, 236], barras('clusteredColumnChart', Col('Fecha', 'Fin de mes'), 'Facturas vencidas pendientes',
+    'Facturas vencidas pendientes a fin de mes', 'Número de facturas vencidas y sin pagar al cierre de cada mes', { tabla: 'Cobros', orden: 'categoria' }));
   add('cobrado', [840, 468, 416, 236], barras('clusteredColumnChart', Col('Fecha', 'Fin de mes'), 'Importe cobrado',
     'Importe cobrado por mes', null, { tabla: 'Cobros', orden: 'categoria', etiquetas: false }));
 }, { segmentadores: [['Fecha', 'Año', 'Año', ANIO_DEFECTO]] });

@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.9.0/schema.json",
   "name": "2051bf7f3af726ec21fb",
   "position": {
-    "x": 773,
+    "x": 960,
     "y": 104,
     "z": 76000,
     "height": 80,
-    "width": 234,
+    "width": 296,
     "tabOrder": 76000
   },
   "visual": {
@@ -23,11 +23,11 @@
                       "Entity": "Cobros"
                     }
                   },
-                  "Property": "Deuda pendiente total"
+                  "Property": "Importe cobrado"
                 }
               },
-              "queryRef": "Cobros.Deuda pendiente total",
-              "nativeQueryRef": "Deuda pendiente total"
+              "queryRef": "Cobros.Importe cobrado",
+              "nativeQueryRef": "Importe cobrado"
             }
           ]
         }
@@ -74,7 +74,7 @@
             "text": {
               "expr": {
                 "Literal": {
-                  "Value": "'Deuda pendiente total'"
+                  "Value": "'Cobrado en el periodo'"
                 }
               }
             },
